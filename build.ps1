@@ -167,7 +167,10 @@ if ($Board -eq "all") {
 # Add discovered URLs to arduino-cli config
 foreach ($url in $boardManagerUrls) {
     Write-Host "Adding board manager URL: $url" -ForegroundColor Gray
-    & $arduinoCliPath config add board_manager.additional_urls $url
+    & $arduinoCliPath config add board_manager.additional_urls $url 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  (URL may already exist, continuing...)" -ForegroundColor DarkGray
+    }
 }
 
 # Update core index after adding URLs
