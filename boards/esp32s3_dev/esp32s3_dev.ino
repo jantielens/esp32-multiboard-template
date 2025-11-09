@@ -16,4 +16,4 @@
 #include "board_config.h"
 
 // Include shared implementation
-#include <src/main_sketch.ino.inc>
+#include "main_sketch.ino.inc"
