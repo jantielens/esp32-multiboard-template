@@ -209,12 +209,16 @@ jobs:
           git show origin/main:flasher/index.html > index.html || true
           git show origin/main:flasher/app.js > app.js || true
           git show origin/main:flasher/styles.css > styles.css || true
-          git show origin/main:flasher/README.md > README.md || true          echo ""
+          git show origin/main:flasher/README.md > README.md || true
+
+          echo ""
           echo "Files in gh-pages root after copy:"
           ls -lR .
 
           # Add all changes
-          git add .          echo ""
+          git add .
+
+          echo ""
           echo "Git status after add:"
           git status
           
