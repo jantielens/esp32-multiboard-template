@@ -1,0 +1,24 @@
+{
+  "name": "ESP32 Template for ESP32 DevKit V1",
+  "version": "1.0.7",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.bootloader.bin",
+          "offset": 4096
+        },
+        {
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.partitions.bin",
+          "offset": 32768
+        },
+        {
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.bin",
+          "offset": 65536
+        }
+      ]
+    }
+  ]
+}

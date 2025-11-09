@@ -1,0 +1,22 @@
+{
+  "tag_name": "v1.0.7",
+  "published_at": "2025-11-09T15:37:52Z",
+  "assets": [
+    {
+      "board": "esp32_dev",
+      "filename": "esp32_dev-v1.0.7.bin",
+      "url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.bin",
+      "bootloader_url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.bootloader.bin",
+      "partitions_url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32_dev-v1.0.7.partitions.bin",
+      "display_name": "ESP32 DevKit V1"
+    },
+    {
+      "board": "esp32s3_dev",
+      "filename": "esp32s3_dev-v1.0.7.bin",
+      "url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.bin",
+      "bootloader_url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.bootloader.bin",
+      "partitions_url": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.partitions.bin",
+      "display_name": "ESP32-S3 DevKit"
+    }
+  ]
+}

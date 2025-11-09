@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ESP32 Multi-Board Template Flasher</title>
+    <meta
+      name="description"
+      content="Flash ESP32 Multi-Board Template firmware directly from your browser using Web Serial API"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
+    ></script>
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <header class="header">
+      <h1 class="header-title">⚡ ESP32 Multi-Board Template</h1>
+      <a href="https://github.com/your-username/esp32-multiboard-template" target="_blank" class="header-link">
+        <svg class="header-icon" width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span>View on GitHub</span>
+      </a>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h2 class="hero-title">ESP32 Multi-Board Template Firmware Flasher</h2>
+      <p class="hero-description">
+        A reusable multi-board template for ESP32 projects with WiFi configuration, MQTT telemetry, 
+        deep sleep power management, and OTA updates. Perfect for battery-powered IoT projects, 
+        Home Assistant integration, and rapid ESP32 prototyping.
+      </p>
+      <div class="hero-features">
+        <div class="hero-feature">
+          <span class="hero-feature-icon">📶</span>
+          <span>Easy WiFi Setup</span>
+        </div>
+        <div class="hero-feature">
+          <span class="hero-feature-icon">🔋</span>
+          <span>Power Efficient</span>
+        </div>
+        <div class="hero-feature">
+          <span class="hero-feature-icon">📡</span>
+          <span>MQTT Telemetry</span>
+        </div>
+        <div class="hero-feature">
+          <span class="hero-feature-icon">🔄</span>
+          <span>OTA Updates</span>
+        </div>
+        <div class="hero-feature">
+          <span class="hero-feature-icon">⚙️</span>
+          <span>Web Configuration</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="content">
+      <div class="content-main">
+        <!-- Select Your Device -->
+        <div class="card">
+          <h2 class="card-title">🎯 Select Your Device</h2>
+
+          <div class="alert alert-info">
+            <strong>ℹ️ Before you start:</strong>
+            Make sure your ESP32 device is connected via USB cable to your computer.
+          </div>
+
+          <div class="device-selection" id="device-selection">
+            <!-- Dynamically populated by app.js -->
+          </div>
+
+          <div class="install-button-container">
+            <esp-web-install-button class="hidden" manifest="">
+              <button slot="activate" class="install-btn">
+                Install ESP32 Template
+              </button>
+            </esp-web-install-button>
+          </div>
+
+          <div class="alert alert-warning hidden" id="no-support-warning">
+            <strong>⚠️ Browser not supported</strong>
+            This flasher requires a browser with Web Serial API support. Please use:
+            <ul>
+              <li>Google Chrome (version 89+)</li>
+              <li>Microsoft Edge (version 89+)</li>
+              <li>Opera (version 75+)</li>
+            </ul>
+            Safari and Firefox are not currently supported.
+          </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="card">
+          <h2 class="card-title">📚 Getting Started</h2>
+
+          <h3 class="card-subtitle">How to Flash Your Device</h3>
+          <div class="instructions">
+            <ol>
+              <li>Select your ESP32 device model above</li>
+              <li>Click the <strong>"Install ESP32 Template"</strong> button</li>
+              <li>In the popup, select your device's serial port</li>
+              <li>Wait for the installation to complete (2-3 minutes)</li>
+              <li>After flashing, the device will restart automatically</li>
+              <li>Look for a WiFi network named <code>ESP32-XXXXXX</code></li>
+              <li>Connect to it and configure your settings at <code>http://192.168.4.1</code></li>
+            </ol>
+          </div>
+
+          <h3 class="card-subtitle">Template Features</h3>
+          <ul>
+            <li>✅ WiFi Manager with AP mode for initial setup</li>
+            <li>✅ Web-based configuration portal</li>
+            <li>✅ MQTT telemetry with Home Assistant auto-discovery</li>
+            <li>✅ Deep sleep power management</li>
+            <li>✅ OTA firmware updates (file upload & HTTP URL)</li>
+            <li>✅ Static IP support</li>
+            <li>✅ Battery monitoring (on compatible boards)</li>
+            <li>✅ Comprehensive logging system</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
