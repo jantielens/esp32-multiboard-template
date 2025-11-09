@@ -34,6 +34,8 @@ cd your-new-repo
 .\upload.ps1 -Board esp32_dev -Port COM7
 ```
 
+**💡 Pro Tip:** Use GitHub Copilot to explore, customize, and develop your firmware! This repository includes comprehensive instructions in `.github/copilot-instructions.md` that reference all documentation, making it easy to get AI-assisted guidance on components, APIs, and best practices.
+
 **See [Developer Guide](docs/DEVELOPER_GUIDE.md) for complete development documentation.**
 
 ### For Users (Flashing Devices)
@@ -71,18 +73,6 @@ cd your-new-repo
 - Home Assistant integrated devices
 - Remote firmware updates
 
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Follow the [PR Workflow](docs/PR_WORKFLOW.md)
-4. Submit a pull request
-
 ## License
 
 MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions welcome! Please open an issue or pull request.
