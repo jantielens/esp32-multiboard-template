@@ -84,6 +84,10 @@ The build system uses a **non-standard Arduino pattern** to share code across mu
 2.  Using wrong include path in board `.ino` files: `#include <src/main_sketch.ino.inc>`
    -  Correct: `#include "main_sketch.ino.inc"` (file is copied to same directory)
 
+3.  Using absolute paths in `main_sketch.ino.inc`: `#include <src/logging/logger.h>`
+   -  Correct: `#include "logger.h"` (all files are copied to same directory)
+   - **ALL includes in .ino.inc files MUST use relative paths** (just the header filename)
+
 **Key Build Property:**
 - Partition scheme: `min_spiffs` (1.9MB APP with OTA / 190KB SPIFFS)
 - This is **required** for OTA updates to work
@@ -716,5 +720,6 @@ git push origin v1.2.3
 - Test all boards before claiming complete
 - Board configs control hardware differences
 - Build script handles file copying automatically
+
 
 

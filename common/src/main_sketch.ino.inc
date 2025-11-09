@@ -3,13 +3,13 @@
 // It should be included from board-specific .ino files after board validation
 // Assumes board_config.h has already been included by the .ino file
 
-#include <src/logging/logger.h>
-#include <src/power/power_manager.h>
-#include <src/config/config_manager.h>
-#include <src/wifi/wifi_manager.h>
-#include <src/portal/config_portal.h>
-#include <src/modes/ap_mode_controller.h>
-#include <src/mqtt/mqtt_manager.h>
+#include "logger.h"
+#include "power_manager.h"
+#include "config_manager.h"
+#include "wifi_manager.h"
+#include "config_portal.h"
+#include "ap_mode_controller.h"
+#include "mqtt_manager.h"
 
 // Global component instances
 PowerManager powerManager;
