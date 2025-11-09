@@ -45,6 +45,8 @@ print_gray() {
 load_board_configurations() {
     local boards_dir="boards"
     
+    print_info "Loading board configurations from $boards_dir/..."
+    
     if [ ! -d "$boards_dir" ]; then
         print_error "ERROR: boards/ directory not found"
         exit 1
@@ -85,6 +87,10 @@ load_board_configurations() {
         BOARDS[$board_name]=$board_fqbn
         BOARD_MANAGER_URLS[$board_name]=$board_manager_url
         print_gray "Discovered board: $board_name ($board_display_name)"
+        print_gray "  FQBN: $board_fqbn"
+        if [ -n "$board_manager_url" ]; then
+            print_gray "  Board Manager URL: $board_manager_url"
+        fi
         ((board_count++))
     done
     
@@ -92,6 +98,8 @@ load_board_configurations() {
         print_error "ERROR: No valid boards found. Each board needs a board.json file."
         exit 1
     fi
+    
+    print_success "Loaded $board_count board(s) successfully"
 }
 
 # Function to check if Arduino CLI is installed
