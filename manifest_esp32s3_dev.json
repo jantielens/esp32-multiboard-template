@@ -1,21 +1,21 @@
 {
   "name": "ESP32 Template for ESP32-S3 DevKit",
-  "version": "1.0.7",
+  "version": "0.0.1",
   "new_install_prompt_erase": true,
   "builds": [
     {
       "chipFamily": "ESP32-S3",
       "parts": [
         {
-          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.bootloader.bin",
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v0.0.1/esp32s3_dev-v0.0.1.bootloader.bin",
           "offset": 0
         },
         {
-          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.partitions.bin",
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v0.0.1/esp32s3_dev-v0.0.1.partitions.bin",
           "offset": 32768
         },
         {
-          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v1.0.7/esp32s3_dev-v1.0.7.bin",
+          "path": "https://jantielens.github.io/esp32-multiboard-template/firmware/v0.0.1/esp32s3_dev-v0.0.1.bin",
           "offset": 65536
         }
       ]
