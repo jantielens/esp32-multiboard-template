@@ -223,15 +223,26 @@ foreach ($core in $coresToInstall.Keys) {
 # Check required libraries
 Write-Host "" -ForegroundColor White
 Write-Host "Checking Library Installation..." -ForegroundColor Cyan
-$requiredLibs = @('PubSubClient')
-foreach ($lib in $requiredLibs) {
-    $libInstalled = & $arduinoCliPath lib list | Select-String $lib
-    if (!$libInstalled) {
-        Write-Host "Installing required library: $lib..." -ForegroundColor Yellow
-        & $arduinoCliPath lib install $lib
-    } else {
-        Write-Host "Library $lib already installed" -ForegroundColor Green
+
+# Read required libraries from libraries.txt
+if (Test-Path "libraries.txt") {
+    $requiredLibs = Get-Content "libraries.txt" | Where-Object { 
+        $_ -notmatch '^\s*#' -and $_ -notmatch '^\s*$' 
+    } | ForEach-Object { $_.Trim() }
+    
+    foreach ($lib in $requiredLibs) {
+        Write-Host "Checking library: $lib" -ForegroundColor Cyan
+        $libInstalled = & $arduinoCliPath lib list | Select-String $lib
+        if (!$libInstalled) {
+            Write-Host "Installing required library: $lib..." -ForegroundColor Yellow
+            & $arduinoCliPath lib install $lib
+            Write-Host "Library $lib installed successfully" -ForegroundColor Green
+        } else {
+            Write-Host "Library $lib already installed" -ForegroundColor Green
+        }
     }
+} else {
+    Write-Host "No libraries.txt file found, skipping library installation" -ForegroundColor Yellow
 }
 
 if ($Board -eq 'all') {

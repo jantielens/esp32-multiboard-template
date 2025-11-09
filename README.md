@@ -382,7 +382,9 @@ See [CUSTOMIZATION.md](docs/CUSTOMIZATION.md) for detailed instructions on addin
 
 **Automatically installed by build script:**
 - ESP32 Arduino Core 3.3.2+
-- PubSubClient 2.8.0+ (MQTT library)
+- Required libraries are listed in `libraries.txt` (currently: PubSubClient 2.8.0+ for MQTT)
+
+To add more libraries, simply add them to `libraries.txt` - one library name per line.
 
 ## License
 

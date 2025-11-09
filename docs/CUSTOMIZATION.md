@@ -318,9 +318,9 @@ void configurePowerSaving() {
 
 ### MQTT not publishing
 
-**Issue:** Library not installed.
+**Issue:** Library not installed or missing from `libraries.txt`.
 
-**Solution:** Build script should auto-install. If not, manually install:
+**Solution:** Build script should auto-install. Check `libraries.txt` has the library listed. If not, manually install:
 ```bash
 arduino-cli lib install PubSubClient
 ```

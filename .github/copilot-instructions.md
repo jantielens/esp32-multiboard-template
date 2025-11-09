@@ -29,10 +29,12 @@ Before building, Arduino CLI MUST be installed:
 - Install Arduino CLI: https://arduino.github.io/arduino-cli/latest/installation/
 - Ensure `arduino-cli` is in PATH
 
-**Required libraries** (auto-installed by build scripts):
+**Required libraries** (auto-installed by build scripts from `libraries.txt`):
 - PubSubClient (MQTT)
 - HTTPClient (built-in with ESP32 core, for OTA)
 - HTTPUpdate (built-in with ESP32 core, for OTA)
+
+**Note:** Libraries are managed centrally in `libraries.txt` file (one library per line, supports # comments). Both build scripts read from this file during the `check_libraries` step.
 
 ### Build Commands (TRUST THESE)
 
@@ -112,6 +114,7 @@ Binaries are in `build/{board}/`:
 ```
 build.ps1               # Windows build script
 build.sh                # Linux/macOS build script (create as needed)
+libraries.txt           # Centralized library management (one per line, supports # comments)
 README.md               # User-facing documentation
 ```
 
@@ -372,8 +375,8 @@ ls build/esp32_dev/*.bin
 - Solution: Change `#include "../logging/logger.h"` to `#include "logger.h"`
 
 **Issue: "PubSubClient.h not found"**
-- Cause: Library not installed
-- Solution: Build script should auto-install. Manually install: `arduino-cli lib install PubSubClient`
+- Cause: Library not installed or missing from `libraries.txt`
+- Solution: Build script should auto-install. Check `libraries.txt` has the library listed. Manually install: `arduino-cli lib install PubSubClient`
 
 **Issue: ".cpp files not compiling"**
 - Cause: Build script not copying files correctly
@@ -422,6 +425,7 @@ ls build/esp32_dev/*.bin
 arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 boards/esp32_dev
 
 # Manual library install (if needed)
+# Note: Libraries are managed in libraries.txt and auto-installed by build scripts
 arduino-cli lib install PubSubClient
 ```
 

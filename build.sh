@@ -251,14 +251,30 @@ check_libraries() {
     print_info ""
     print_info "Checking Library Installation..."
     
-    if ! $ARDUINO_CLI lib list | grep -q "PubSubClient"; then
-        print_warning "PubSubClient library not installed"
-        print_info "Installing PubSubClient..."
-        $ARDUINO_CLI lib install "PubSubClient"
-        print_success "PubSubClient installed successfully"
-    else
-        print_success "PubSubClient library already installed"
+    # Read required libraries from libraries.txt
+    if [ ! -f "libraries.txt" ]; then
+        print_warning "No libraries.txt file found, skipping library installation"
+        return
     fi
+    
+    while IFS= read -r lib || [ -n "$lib" ]; do
+        # Skip comments and empty lines
+        [[ "$lib" =~ ^#.*$ ]] && continue
+        [[ -z "$lib" ]] && continue
+        
+        # Trim whitespace
+        lib=$(echo "$lib" | xargs)
+        
+        print_info "Checking library: $lib"
+        if ! $ARDUINO_CLI lib list | grep -q "$lib"; then
+            print_warning "$lib library not installed"
+            print_info "Installing $lib..."
+            $ARDUINO_CLI lib install "$lib"
+            print_success "$lib installed successfully"
+        else
+            print_success "$lib library already installed"
+        fi
+    done < libraries.txt
 }
 
 # Function to build a board
