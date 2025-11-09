@@ -189,9 +189,12 @@ jobs:
           # Fetch and checkout gh-pages branch (create if doesn't exist)
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout -f gh-pages || git checkout --orphan gh-pages
-          
+
           # Clean working directory
           git rm -rf . || true
+
+          # Fetch main branch to get flasher files
+          git fetch origin main
 
           # Create firmware directory
           mkdir -p firmware/${TAG}
@@ -203,11 +206,10 @@ jobs:
           cp -v /tmp/flasher-release/manifest_*.json /tmp/flasher-release/latest.json .
 
           # Copy flasher HTML/CSS/JS from main branch to root
-          git checkout origin/main -- flasher/index.html flasher/app.js flasher/styles.css flasher/README.md || true
-          mv flasher/index.html flasher/app.js flasher/styles.css flasher/README.md . || true
-          rmdir flasher || true
-
-          echo ""
+          git show origin/main:flasher/index.html > index.html || true
+          git show origin/main:flasher/app.js > app.js || true
+          git show origin/main:flasher/styles.css > styles.css || true
+          git show origin/main:flasher/README.md > README.md || true          echo ""
           echo "Files in gh-pages root after copy:"
           ls -lR .
 
