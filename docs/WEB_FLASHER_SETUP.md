@@ -9,6 +9,8 @@ The web flasher allows users to flash firmware directly from their browser witho
 - **GitHub Pages** to host the flasher site and binaries
 - **ESP Web Tools** for browser-based flashing via Web Serial API
 
+**Note:** This guide assumes you've created your own repository using the "Use this template" button on GitHub.
+
 ## 📋 Architecture
 
 ### Branch Strategy

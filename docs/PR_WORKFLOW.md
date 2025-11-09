@@ -1,5 +1,7 @@
 # Pull Request Workflow
 
+**Note:** This workflow applies to repositories created from this template using the "Use this template" button.
+
 The `build.yml` workflow automatically validates pull requests to ensure code quality and proper versioning.
 
 ## What Gets Checked
@@ -277,6 +279,7 @@ on:
 
 ## Related Documentation
 
-- [FIRST_DEPLOYMENT.md](FIRST_DEPLOYMENT.md) - First-time deployment checklist
-- [docs/WEB_FLASHER_SETUP.md](docs/WEB_FLASHER_SETUP.md) - Web flasher configuration
-- [DEPLOYMENT_SUMMARY.md](DEPLOYMENT_SUMMARY.md) - Complete deployment overview
+- [First Deployment Checklist](../FIRST_DEPLOYMENT.md) - First-time deployment checklist
+- [Developer Guide](DEVELOPER_GUIDE.md) - Complete development guide
+- [Web Flasher Setup](WEB_FLASHER_SETUP.md) - Web flasher configuration
+- [CI/CD Flow](CICD_FLOW.md) - Complete automation pipeline

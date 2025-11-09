@@ -5,9 +5,9 @@ Use this checklist when deploying the web flasher for the first time.
 ## ☑️ Pre-Deployment Setup
 
 ### 1. GitHub Repository Setup
-- [ ] Repository created on GitHub
-- [ ] Local repository initialized
-- [ ] Remote origin configured
+- [ ] Created new repository from template ("Use this template" button)
+- [ ] Cloned your new repository locally
+- [ ] Repository configured with your project name
 
 ### 2. GitHub Pages Configuration
 - [ ] Go to repository Settings → Pages
@@ -58,7 +58,7 @@ Before your first release, you can test the PR validation workflow:
 - [ ] Verify workflow succeeds in Actions tab
 - [ ] Close/merge the test PR
 
-**Note:** Version and CHANGELOG files are optional. The workflow provides helpful guidance but doesn't block PRs.
+**Note:** Version and CHANGELOG files are optional. See [Developer Guide](docs/DEVELOPER_GUIDE.md) for details.
 
 ## â˜ First Release
 

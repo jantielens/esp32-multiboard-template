@@ -547,4 +547,5 @@ In `build.yml`, update the size check:
 - [PR_WORKFLOW.md](PR_WORKFLOW.md) - Detailed PR validation guide
 - [WEB_FLASHER_SETUP.md](WEB_FLASHER_SETUP.md) - Web flasher configuration
 - [FIRST_DEPLOYMENT.md](../FIRST_DEPLOYMENT.md) - First-time setup checklist
-- [DEPLOYMENT_SUMMARY.md](../DEPLOYMENT_SUMMARY.md) - Feature overview
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) - Complete development guide
+- [CUSTOMIZATION.md](CUSTOMIZATION.md) - Adding boards and features

@@ -1,5 +1,7 @@
 # Customization Guide
 
+**Note:** Before customizing, create your own repository using the "Use this template" button on GitHub.
+
 ## Adding a New Board
 
 This template makes it easy to add support for new ESP32 variants. Follow these steps:
@@ -338,5 +340,5 @@ powerMgr.sleepForSeconds(3600);
 ## Need Help?
 
 - Check example boards in `boards/` directory
-- Review component headers in `common/src/` for API documentation
+- Review [Developer Guide](DEVELOPER_GUIDE.md) for component APIs
 - Open an issue on GitHub
