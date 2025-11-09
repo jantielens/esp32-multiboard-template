@@ -262,6 +262,13 @@ build_board() {
 echo "ESP32 Multi-Board Template - Build Script"
 echo ""
 
+# Parse command line arguments first
+if [ $# -eq 0 ]; then
+    print_error "Usage: $0 <board_name> | all"
+    echo "Available boards: Run with a board name to see discovered boards"
+    exit 1
+fi
+
 # Load board configurations
 load_board_configurations
 
@@ -279,13 +286,7 @@ fi
 
 check_libraries
 
-# Parse command line arguments
-if [ $# -eq 0 ]; then
-    print_error "Usage: $0 <board_name> | all"
-    echo "Available boards: ${!BOARDS[@]}"
-    exit 1
-fi
-
+# Build boards
 if [ "$1" = "all" ]; then
     # Build all boards
     for board in "${!BOARDS[@]}"; do
