@@ -1,0 +1,418 @@
+name: Build and Validate PR
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'flasher/**'
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Board to build (esp32_dev, esp32s3_dev, or all)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - esp32_dev
+          - esp32s3_dev
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  version-check:
+    name: Check Version and CHANGELOG
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get versions
+        id: versions
+        run: |
+          # Check if version.h exists in PR branch
+          if [ -f "common/src/version.h" ]; then
+            PR_VERSION=$(grep '#define FIRMWARE_VERSION "' common/src/version.h | sed 's/.*"\(.*\)".*/\1/')
+          else
+            PR_VERSION="not_found"
+          fi
+          echo "pr_version=$PR_VERSION" >> $GITHUB_OUTPUT
+          
+          # Get version from base branch (main)
+          git fetch origin main:main
+          git checkout main
+          
+          # Check if version.h exists on main branch
+          if [ -f "common/src/version.h" ]; then
+            MAIN_VERSION=$(grep '#define FIRMWARE_VERSION "' common/src/version.h | sed 's/.*"\(.*\)".*/\1/')
+          else
+            MAIN_VERSION="0.0.0"
+          fi
+          
+          echo "main_version=$MAIN_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Main branch version: $MAIN_VERSION"
+          echo "PR branch version: $PR_VERSION"
+      
+      - name: Compare versions
+        id: compare
+        run: |
+          MAIN_VERSION="${{ steps.versions.outputs.main_version }}"
+          PR_VERSION="${{ steps.versions.outputs.pr_version }}"
+          
+          if [ "$PR_VERSION" = "not_found" ]; then
+            echo "status=not_found" >> $GITHUB_OUTPUT
+            echo "ℹ️ No version.h file found in PR"
+            exit 0
+          fi
+          
+          # Function to compare semantic versions
+          version_gt() {
+            test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+          }
+          
+          if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
+            echo "status=unchanged" >> $GITHUB_OUTPUT
+            echo "⚠️ Version unchanged: $PR_VERSION"
+          elif version_gt "$PR_VERSION" "$MAIN_VERSION"; then
+            echo "status=incremented" >> $GITHUB_OUTPUT
+            echo "✅ Version incremented: $MAIN_VERSION → $PR_VERSION"
+          else
+            echo "status=decremented" >> $GITHUB_OUTPUT
+            echo "❌ Version decreased: $MAIN_VERSION → $PR_VERSION"
+          fi
+      
+      - name: Check CHANGELOG
+        id: changelog
+        if: steps.compare.outputs.status == 'incremented'
+        run: |
+          PR_VERSION="${{ steps.versions.outputs.pr_version }}"
+          
+          # Switch back to PR branch
+          git checkout ${{ github.head_ref }}
+          
+          # Check if CHANGELOG.md exists
+          if [ ! -f "CHANGELOG.md" ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "has_entry=false" >> $GITHUB_OUTPUT
+            echo "⚠️ CHANGELOG.md not found"
+            exit 0
+          fi
+          
+          echo "exists=true" >> $GITHUB_OUTPUT
+          
+          # Check if CHANGELOG has an entry for the new version
+          if grep -q "## \[$PR_VERSION\]" CHANGELOG.md; then
+            echo "has_entry=true" >> $GITHUB_OUTPUT
+            echo "✅ CHANGELOG.md has entry for v$PR_VERSION"
+          else
+            echo "has_entry=false" >> $GITHUB_OUTPUT
+            echo "⚠️ CHANGELOG.md missing entry for v$PR_VERSION"
+          fi
+      
+      - name: Comment on PR - Version Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.compare.outputs.status }}';
+            const mainVersion = '${{ steps.versions.outputs.main_version }}';
+            const prVersion = '${{ steps.versions.outputs.pr_version }}';
+            const changelogExists = '${{ steps.changelog.outputs.exists }}' === 'true';
+            const changelogHasEntry = '${{ steps.changelog.outputs.has_entry }}' === 'true';
+            
+            const commentMarker = '<!-- version-check-bot -->';
+            let comment = `${commentMarker}\n`;
+            
+            if (status === 'not_found') {
+              comment += `### ℹ️ No Version File\n\n`;
+              comment += `No \`common/src/version.h\` file found in this PR.\n\n`;
+              comment += `If you want version tracking, create this file with:\n`;
+              comment += `\`\`\`cpp\n#ifndef VERSION_H\n#define VERSION_H\n\n`;
+              comment += `#define FIRMWARE_VERSION "1.0.0"\n\n`;
+              comment += `#endif // VERSION_H\n\`\`\`\n`;
+            } else if (status === 'unchanged') {
+              comment += `### ⚠️ Version Not Incremented\n\n`;
+              comment += `The firmware version has not been updated in this PR.\n\n`;
+              comment += `**Current version:** \`${mainVersion}\`\n`;
+              comment += `**PR version:** \`${prVersion}\`\n\n`;
+              comment += `If this PR includes code changes, please consider incrementing the version in \`common/src/version.h\` following semantic versioning:\n\n`;
+              comment += `- **PATCH** (e.g., \`1.0.0\` → \`1.0.1\`): Bug fixes\n`;
+              comment += `- **MINOR** (e.g., \`1.0.0\` → \`1.1.0\`): New features (backward compatible)\n`;
+              comment += `- **MAJOR** (e.g., \`1.0.0\` → \`2.0.0\`): Breaking changes\n\n`;
+              comment += `Don't forget to update \`CHANGELOG.md\` with your changes!\n\n`;
+              comment += `*This is a warning, not a blocker. The PR can still be merged.*`;
+            } else if (status === 'incremented') {
+              comment += `### ✅ Version Incremented\n\n`;
+              comment += `The firmware version has been updated in this PR.\n\n`;
+              comment += `**Main branch version:** \`${mainVersion}\`\n`;
+              comment += `**New version:** \`${prVersion}\`\n\n`;
+              
+              if (!changelogExists) {
+                comment += `### ⚠️ CHANGELOG.md Not Found\n\n`;
+                comment += `Please create a \`CHANGELOG.md\` file following the [Keep a Changelog](https://keepachangelog.com/) format.\n\n`;
+              } else if (!changelogHasEntry) {
+                comment += `### ⚠️ CHANGELOG.md Missing Entry\n\n`;
+                comment += `Please add an entry for version \`${prVersion}\` in \`CHANGELOG.md\`.\n\n`;
+                comment += `Example:\n`;
+                comment += `\`\`\`markdown\n`;
+                comment += `## [${prVersion}] - ${new Date().toISOString().split('T')[0]}\n`;
+                comment += `### Added\n`;
+                comment += `- New feature description\n\n`;
+                comment += `### Fixed\n`;
+                comment += `- Bug fix description\n`;
+                comment += `\`\`\`\n\n`;
+              } else {
+                comment += `✅ CHANGELOG.md has been updated with version \`${prVersion}\`\n\n`;
+              }
+              
+              comment += `After merge, create a release by pushing a tag:\n`;
+              comment += `\`\`\`bash\n`;
+              comment += `git tag v${prVersion}\n`;
+              comment += `git push origin v${prVersion}\n`;
+              comment += `\`\`\``;
+            } else if (status === 'decremented') {
+              comment += `### ❌ Version Decreased\n\n`;
+              comment += `**Warning:** The version number has been decreased in this PR, which is unusual.\n\n`;
+              comment += `**Main branch version:** \`${mainVersion}\`\n`;
+              comment += `**PR version:** \`${prVersion}\`\n\n`;
+              comment += `Please verify this is intentional. Typically, version numbers should only increase.\n\n`;
+              comment += `*This is a warning, not a blocker. The PR can still be merged if intentional.*`;
+            }
+            
+            // Find existing bot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes(commentMarker)
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+  
+  prepare:
+    name: Prepare build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.board }}" = "all" ]; then
+              echo 'matrix=["esp32_dev","esp32s3_dev"]' >> $GITHUB_OUTPUT
+            else
+              echo 'matrix=["${{ github.event.inputs.board }}"]' >> $GITHUB_OUTPUT
+            fi
+          else
+            echo 'matrix=["esp32_dev","esp32s3_dev"]' >> $GITHUB_OUTPUT
+          fi
+  
+  build:
+    name: Build ${{ matrix.board }}
+    runs-on: ubuntu-latest
+    needs: prepare
+    
+    strategy:
+      matrix:
+        board: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Cache Arduino CLI
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.arduino15
+            ~/Arduino/libraries
+          key: ${{ runner.os }}-arduino-cli-1.3.1-esp32-3.3.2-${{ hashFiles('**/build.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-arduino-cli-1.3.1-esp32-3.3.2-
+      
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 1.3.1
+          arduino-cli version
+      
+      - name: Install Arduino core and libraries
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config set library.enable_unsafe_install true
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.2
+          arduino-cli lib install "PubSubClient"
+      
+      - name: Build firmware
+        run: |
+          chmod +x build.sh
+          ./build.sh ${{ matrix.board }}
+      
+      - name: Get firmware size
+        id: size
+        run: |
+          BIN_FILE="build/${{ matrix.board }}/${{ matrix.board }}.ino.bin"
+          if [ -f "$BIN_FILE" ]; then
+            SIZE=$(stat -f%z "$BIN_FILE" 2>/dev/null || stat -c%s "$BIN_FILE" 2>/dev/null)
+            SIZE_KB=$(echo "scale=0; $SIZE / 1024" | bc)
+            SIZE_MB=$(echo "scale=2; $SIZE / 1048576" | bc)
+            MAX_SIZE=1572864  # 1.5MB (min_spiffs partition)
+            PERCENT=$(echo "scale=0; $SIZE * 100 / $MAX_SIZE" | bc)
+            
+            echo "size=$SIZE" >> $GITHUB_OUTPUT
+            echo "size_kb=$SIZE_KB" >> $GITHUB_OUTPUT
+            echo "size_mb=$SIZE_MB" >> $GITHUB_OUTPUT
+            echo "percent=$PERCENT" >> $GITHUB_OUTPUT
+            
+            echo "✅ Firmware size: ${SIZE_KB} KB (${SIZE_MB} MB) - ${PERCENT}% of max"
+            
+            if [ $SIZE -gt $MAX_SIZE ]; then
+              echo "❌ ERROR: Firmware too large! ${SIZE_KB} KB > 1536 KB"
+              exit 1
+            fi
+          else
+            echo "❌ Firmware binary not found"
+            exit 1
+          fi
+      
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.board }}
+          path: build/${{ matrix.board }}/${{ matrix.board }}.ino.bin
+          retention-days: 30
+  
+  comment-summary:
+    name: Comment PR with build summary
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    if: github.event_name == 'pull_request' && always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+        continue-on-error: true
+      
+      - name: Generate build summary
+        id: summary
+        run: |
+          boards='${{ needs.prepare.outputs.matrix }}'
+          boards_array=$(echo "$boards" | jq -r '.[]')
+          build_status="${{ needs.build.result }}"
+          
+          {
+            echo "summary<<EOF"
+            
+            if [ "$build_status" = "success" ]; then
+              echo "## ✅ Firmware Build Summary"
+              echo ""
+              echo "All board configurations built successfully!"
+            else
+              echo "## ❌ Firmware Build Failed"
+              echo ""
+              echo "One or more builds failed. Check the workflow logs for details."
+            fi
+            
+            echo ""
+            echo "| Board | Size | % of Max (1.5MB) | Status |"
+            echo "|-------|------|------------------|--------|"
+            
+            for board in $boards_array; do
+              bin_file="artifacts/firmware-${board}/${board}.ino.bin"
+              if [ -f "$bin_file" ]; then
+                size=$(stat -f%z "$bin_file" 2>/dev/null || stat -c%s "$bin_file" 2>/dev/null)
+                size_kb=$(echo "scale=0; $size / 1024" | bc)
+                size_mb=$(echo "scale=2; $size / 1048576" | bc)
+                max_size=1572864
+                percent=$(echo "scale=0; $size * 100 / $max_size" | bc)
+                
+                if [ $size -gt $max_size ]; then
+                  status="❌ Too large"
+                else
+                  status="✅"
+                fi
+                
+                echo "| \`${board}\` | ${size_kb} KB (${size_mb} MB) | ${percent}% | ${status} |"
+              else
+                echo "| \`${board}\` | - | - | ❌ Build failed |"
+              fi
+            done
+            
+            echo ""
+            
+            if [ "$build_status" = "success" ]; then
+              echo "Firmware artifacts available in the Actions run for download."
+            fi
+            
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+      
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        env:
+          SUMMARY: ${{ steps.summary.outputs.summary }}
+        with:
+          script: |
+            const summary = process.env.SUMMARY;
+            const commentMarker = '<!-- build-summary-bot -->';
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const existingComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes(commentMarker)
+            );
+            
+            const body = commentMarker + '\n' + summary;
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

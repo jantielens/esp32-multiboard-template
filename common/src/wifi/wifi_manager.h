@@ -1,0 +1,59 @@
+#ifndef WIFI_MANAGER_H
+#define WIFI_MANAGER_H
+
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WebServer.h>
+#include "config_manager.h"
+#include "power_manager.h"
+
+// Access Point configuration
+#define AP_SSID_PREFIX "esp32-"
+#define AP_TIMEOUT_MS 300000  // 5 minutes timeout for AP mode
+
+// WiFi Client configuration
+#define WIFI_CONNECT_TIMEOUT_MS 10000  // 10 seconds timeout for WiFi connection
+#define WIFI_MAX_RETRIES 3
+
+class WiFiManager {
+public:
+    WiFiManager(ConfigManager* configManager);
+    ~WiFiManager();
+    
+    // Access Point Mode
+    bool startAccessPoint();
+    void stopAccessPoint();
+    String getAPName();
+    String getAPIPAddress();
+    bool isAPActive();
+    
+    // WiFi Client Mode
+    bool connectToWiFi(const String& ssid, const String& password, uint8_t* outRetryCount = nullptr);
+    bool connectToWiFi(uint8_t* outRetryCount = nullptr);  // Uses stored credentials
+    void disconnect();
+    bool isConnected();
+    String getLocalIP();
+    int getRSSI();
+    
+    // Get WiFi status information
+    String getStatusString();
+    
+    // Static IP configuration
+    bool configureStaticIP(const String& ip, const String& gateway, const String& subnet, 
+                          const String& dns1, const String& dns2 = "");
+    
+    // Power management integration
+    void setPowerManager(PowerManager* powerManager);
+    
+    // Device identification
+    String generateDeviceID();  // Generate MAC-based ID (e.g., "AABBCC")
+    String getDeviceIdentifier();  // Get friendly name if set, else "esp32-XXXXXX"
+    
+private:
+    ConfigManager* _configManager;
+    PowerManager* _powerManager;
+    String _apName;
+    bool _apActive;
+};
+
+#endif // WIFI_MANAGER_H

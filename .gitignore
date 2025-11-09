@@ -1,0 +1,63 @@
+# ESP32 Multi-Board Template - .gitignore for main branch
+# (For gh-pages branch, see gh-pages-gitignore.txt)
+
+# Build outputs
+build/
+*.bin
+*.elf
+*.map
+
+# Arduino IDE files
+*.hex
+*.eep
+*.lss
+*.sym
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Python (for local flasher testing)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node modules (if using npm for flasher dev)
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+
+# IMPORTANT: DO NOT commit firmware binaries to main branch
+# They belong in gh-pages branch (auto-deployed by GitHub Actions)
+flasher/firmware/
+flasher/latest.json
