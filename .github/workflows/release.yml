@@ -161,7 +161,9 @@ jobs:
           scripts/generate_latest_json.sh "${TAG}" artifacts latest.json "${{ env.GITHUB_USER }}" "${{ env.GITHUB_REPO }}"
 
           echo "Generated latest.json:"
-          cat latest.json      - name: Commit binaries and manifests to gh-pages branch
+          cat latest.json
+
+      - name: Commit binaries and manifests to gh-pages branch
         env:
           TAG: ${{ steps.get_version.outputs.tag }}
         run: |
