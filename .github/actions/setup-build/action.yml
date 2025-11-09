@@ -1,0 +1,23 @@
+name: 'Setup ESP32 Build Environment'
+description: 'Install and configure Arduino CLI for ESP32 builds'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Arduino CLI
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.arduino15
+          ~/Arduino/libraries
+        key: ${{ runner.os }}-arduino-cli-1.3.1-${{ hashFiles('**/build.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-arduino-cli-1.3.1-
+    
+    - name: Install Arduino CLI
+      shell: bash
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh -s 1.3.1
+        arduino-cli version
+        arduino-cli config init --overwrite
+        arduino-cli config set library.enable_unsafe_install true
