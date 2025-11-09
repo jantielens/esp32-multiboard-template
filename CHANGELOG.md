@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2025-11-09
+
+### Fixed
+- Fixed YAML syntax error in release workflow
+
 ## [1.0.4] - 2025-11-09
 
 ### Fixed
@@ -47,7 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logging system with configurable levels
 - Configuration persistence in EEPROM
 
-[Unreleased]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/jantielens/esp32-multiboard-template/compare/v1.0.1...v1.0.2
