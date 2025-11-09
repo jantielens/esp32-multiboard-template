@@ -69,10 +69,20 @@ The build system uses a **non-standard Arduino pattern** to share code across mu
 4. **Board configs** define hardware constants in `boards/{board}/board_config.h`
 
 **Build Process (automatic via scripts):**
-- Build script temporarily **copies** all `.cpp` and `.h` files from `common/src/` (recursively) to each board's sketch directory
-- Arduino CLI compiles with custom include paths: `-include board_config.h`
+- Build script temporarily **copies** all `.cpp`, `.h`, AND `.ino.inc` files from `common/src/` (recursively) to each board's sketch directory
+- **CRITICAL:** Must copy `.ino.inc` files (like `main_sketch.ino.inc`) - this is easy to forget!
+- Board `.ino` files include the copied `main_sketch.ino.inc` with: `#include "main_sketch.ino.inc"` (relative path, NOT `<src/...>`)
+- Arduino CLI compiles with custom include paths and partition scheme
 - Build script **cleans up** copied files after compilation
 - **NEVER manually copy/move files** - let the build scripts handle this
+
+**Common Build Script Mistakes (AVOID THESE):**
+1.  Forgetting to copy `.ino.inc` files (only copying `.cpp` and `.h`)
+   -  Always use: `find common/src \( -name "*.cpp" -o -name "*.h" -o -name "*.ino.inc" \)` (Bash)
+   -  Always use: `Get-ChildItem -Filter "*.ino.inc"` and add to `$allCommonFiles` (PowerShell)
+
+2.  Using wrong include path in board `.ino` files: `#include <src/main_sketch.ino.inc>`
+   -  Correct: `#include "main_sketch.ino.inc"` (file is copied to same directory)
 
 **Key Build Property:**
 - Partition scheme: `min_spiffs` (1.9MB APP with OTA / 190KB SPIFFS)
@@ -706,3 +716,5 @@ git push origin v1.2.3
 - Test all boards before claiming complete
 - Board configs control hardware differences
 - Build script handles file copying automatically
+
+
