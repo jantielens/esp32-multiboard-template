@@ -144,26 +144,24 @@ jobs:
           TAG: ${{ steps.get_version.outputs.tag }}
         run: |
           set -euo pipefail
-          
+
           chmod +x scripts/generate_manifests.sh
-          scripts/generate_manifests.sh "${TAG}" artifacts flasher "${{ env.GITHUB_USER }}" "${{ env.GITHUB_REPO }}"
-          
+          scripts/generate_manifests.sh "${TAG}" artifacts . "${{ env.GITHUB_USER }}" "${{ env.GITHUB_REPO }}"
+
           echo "Generated manifests:"
-          ls -l flasher/manifest_*.json
+          ls -l manifest_*.json
 
       - name: Generate latest.json metadata
         env:
           TAG: ${{ steps.get_version.outputs.tag }}
         run: |
           set -euo pipefail
-          
-          chmod +x scripts/generate_latest_json.sh
-          scripts/generate_latest_json.sh "${TAG}" artifacts flasher/latest.json "${{ env.GITHUB_USER }}" "${{ env.GITHUB_REPO }}"
-          
-          echo "Generated latest.json:"
-          cat flasher/latest.json
 
-      - name: Commit binaries and manifests to gh-pages branch
+          chmod +x scripts/generate_latest_json.sh
+          scripts/generate_latest_json.sh "${TAG}" artifacts latest.json "${{ env.GITHUB_USER }}" "${{ env.GITHUB_REPO }}"
+
+          echo "Generated latest.json:"
+          cat latest.json      - name: Commit binaries and manifests to gh-pages branch
         env:
           TAG: ${{ steps.get_version.outputs.tag }}
         run: |
@@ -175,7 +173,7 @@ jobs:
           
           # Save the generated manifests and binaries
           mkdir -p /tmp/flasher-release
-          cp flasher/manifest_*.json flasher/latest.json /tmp/flasher-release/
+          cp manifest_*.json latest.json /tmp/flasher-release/
           
           # Copy all binaries
           echo "Copying binaries from artifacts/:"
@@ -190,30 +188,29 @@ jobs:
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout -f gh-pages || git checkout --orphan gh-pages
           
-          # Clean working directory except flasher/
+          # Clean working directory
           git rm -rf . || true
-          git checkout HEAD -- flasher/ || true
-          
+
           # Create firmware directory
-          mkdir -p flasher/firmware/${TAG}
-          
+          mkdir -p firmware/${TAG}
+
           # Copy binaries to versioned directory
-          cp -v /tmp/flasher-release/*.bin flasher/firmware/${TAG}/
-          
-          # Copy manifests to flasher root
-          cp -v /tmp/flasher-release/manifest_*.json /tmp/flasher-release/latest.json flasher/
-          
-          # Ensure we have the flasher HTML/CSS/JS from main branch
+          cp -v /tmp/flasher-release/*.bin firmware/${TAG}/
+
+          # Copy manifests to root
+          cp -v /tmp/flasher-release/manifest_*.json /tmp/flasher-release/latest.json .
+
+          # Copy flasher HTML/CSS/JS from main branch to root
           git checkout origin/main -- flasher/index.html flasher/app.js flasher/styles.css flasher/README.md || true
-          
+          mv flasher/index.html flasher/app.js flasher/styles.css flasher/README.md . || true
+          rmdir flasher || true
+
           echo ""
-          echo "Files in flasher directory after copy:"
-          ls -lR flasher/
-          
+          echo "Files in gh-pages root after copy:"
+          ls -lR .
+
           # Add all changes
-          git add flasher/
-          
-          echo ""
+          git add .          echo ""
           echo "Git status after add:"
           git status
           
