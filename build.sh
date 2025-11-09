@@ -55,7 +55,10 @@ load_board_configurations() {
     local board_count=0
     
     for board_dir in "$boards_dir"/*; do
+        print_gray "Checking directory: $board_dir"
+        
         if [ ! -d "$board_dir" ]; then
+            print_gray "  Skipping (not a directory)"
             continue
         fi
         
@@ -98,7 +101,10 @@ load_board_configurations() {
             print_gray "  Board Manager URL: $board_manager_url"
         fi
         ((board_count++))
+        print_gray "  Board count now: $board_count"
     done
+    
+    print_info "Finished scanning directories"
     
     if [ $board_count -eq 0 ]; then
         print_error "ERROR: No valid boards found. Each board needs a board.json file."
