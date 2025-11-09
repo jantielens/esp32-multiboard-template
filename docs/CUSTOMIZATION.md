@@ -39,7 +39,26 @@ Create `boards/my_new_board/board_config.h`:
 #endif // BOARD_CONFIG_H
 ```
 
-### 3. Create Minimal Sketch
+### 3. Create Board Metadata
+
+Create `boards/my_new_board/board.json`:
+
+```json
+{
+  "name": "My New Board",
+  "fqbn": "esp32:esp32:esp32c3",
+  "board_manager_url": "https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json"
+}
+```
+
+**Note:** 
+- The `board_manager_url` is required for CI/CD workflows to automatically install the correct Arduino core
+- For official ESP32 boards, use: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+- For third-party boards (e.g., Inkplate), use the vendor's board manager URL
+
+**Important:** The `fqbn` (Fully Qualified Board Name) tells Arduino CLI which board to compile for. See the FQBN table below for common values.
+
+### 4. Create Minimal Sketch
 
 Create `boards/my_new_board/my_new_board.ino`:
 
@@ -68,45 +87,19 @@ void loop() {
 }
 ```
 
-### 4. Update Build Script
-
-Add your board to the `$boards` hashtable in `build.ps1` (Windows) or `build.sh` (Linux/macOS):
-
-**Windows (build.ps1):**
-```powershell
-$boards = @{
-    'esp32_dev' = @{
-        Name = "ESP32 DevKit V1"
-        FQBN = "esp32:esp32:esp32"
-        Path = "boards/esp32_dev"
-    }
-    'esp32s3_dev' = @{
-        Name = "ESP32-S3 DevKit"
-        FQBN = "esp32:esp32:esp32s3"
-        Path = "boards/esp32s3_dev"
-    }
-    'my_new_board' = @{
-        Name = "My New Board"
-        FQBN = "esp32:esp32:esp32c3"  # See FQBN list below
-        Path = "boards/my_new_board"
-    }
-}
-```
-
-**Linux/macOS (build.sh):**
-```bash
-declare -A boards=(
-    ["esp32_dev"]="ESP32 DevKit V1|esp32:esp32:esp32|boards/esp32_dev"
-    ["esp32s3_dev"]="ESP32-S3 DevKit|esp32:esp32:esp32s3|boards/esp32s3_dev"
-    ["my_new_board"]="My New Board|esp32:esp32:esp32c3|boards/my_new_board"
-)
-```
-
 ### 5. Build and Test
+
+The build scripts automatically discover all boards by scanning the `boards/` directory and reading each `board.json` file. They also automatically discover and configure board manager URLs from the `board_manager_url` field. No manual configuration needed!
 
 ```bash
 .\build.ps1 my_new_board
 ```
+
+The build script will:
+1. Discover your new board from `board.json`
+2. Extract the `board_manager_url` and add it to Arduino CLI config
+3. Install the required Arduino core (e.g., `Inkplate_Boards:esp32`)
+4. Compile the firmware
 
 ## Common ESP32 FQBNs
 

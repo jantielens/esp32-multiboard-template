@@ -45,7 +45,7 @@ Before building, Arduino CLI MUST be installed:
 ./build.sh esp32_dev
 ```
 
-**Valid board names:** `esp32_dev`, `esp32s3_dev`, or any custom board added to build script
+**Valid board names:** Any board with a `board.json` file in the `/boards` folder (automatically discovered)
 
 **Build all boards:**
 ```powershell
@@ -121,6 +121,7 @@ README.md               # User-facing documentation
 boards/{board}/                      # Board-specific sketches
   {board}.ino                        # Minimal entry point (~20 lines: validation + includes)
   board_config.h                     # Hardware constants
+  board.json                         # Board metadata (name, FQBN, board_manager_url)
 
 common/                              # Shared code library
   library.properties                 # Arduino library metadata
@@ -202,11 +203,11 @@ void performCustomWork() {
   
   // Display on screen
   display.clearDisplay();
-  display.println("Temp: " + String(temperature) + "°C");
+  display.println("Temp: " + String(temperature) + "ï¿½C");
   display.display();
   
   // Log to serial
-  LogBox::messagef("Sensor", "Temperature: %.2f°C", temperature);
+  LogBox::messagef("Sensor", "Temperature: %.2fï¿½C", temperature);
 }
 ```
 
@@ -256,10 +257,18 @@ void performCustomWork() {
 See `docs/CUSTOMIZATION.md` for complete guide. Summary:
 
 1. Create `boards/newboard/` directory
-2. Add `newboard.ino` (copy from existing board, change validation)
-3. Add `board_config.h` with hardware constants
-4. Update `$boards` hashtable in `build.ps1` and/or `build.sh`
-5. Test build: `.\build.ps1 newboard`
+2. Add `board.json` with board name, FQBN, and board_manager_url
+3. Add `newboard.ino` (copy from existing board, change validation)
+4. Add `board_config.h` with hardware constants
+5. Test build: `.\build.ps1 newboard` (auto-discovered!)
+
+**Note:** Build scripts (build.ps1/build.sh) automatically discover boards by scanning `/boards` folder and reading `board.json` files. The scripts also automatically:
+- Extract `board_manager_url` from each board.json
+- Add unique URLs to arduino-cli config
+- Install required cores based on FQBN package prefix (e.g., esp32:esp32, Inkplate_Boards:esp32)
+- Pin esp32:esp32 to version 3.3.2 for consistency (other cores use latest version)
+
+No manual script editing required for local builds! CI/CD workflows use the same dynamic discovery approach.
 
 ### Modifying Components
 
@@ -553,7 +562,8 @@ Browser-based firmware flashing using ESP Web Tools (no drivers needed!):
    - Posts PR comment with guidance
    
 2. **Build All Boards**:
-   - Compiles esp32_dev and esp32s3_dev in parallel
+   - Runs build.sh script for each board in parallel
+   - Script auto-discovers board manager URLs and installs cores dynamically
    - Validates firmware size < 1.5MB
    - Uploads build artifacts
    

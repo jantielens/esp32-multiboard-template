@@ -111,6 +111,11 @@ flasher/
 
 When you add a new board to the template:
 
+**Local Build Setup (automatic):**
+1. Create `boards/your_new_board/board.json` with name and FQBN
+2. Build scripts automatically discover it - no editing needed!
+
+**CI/CD Setup (manual):**
 1. **Update board list** in `scripts/generate_manifests.sh`:
    ```bash
    NAMES[your_new_board]="Your New Board Name"
@@ -129,7 +134,16 @@ When you add a new board to the template:
        board: [esp32_dev, esp32s3_dev, your_new_board]
    ```
 
-4. **Update flasher UI** in `flasher/app.js`:
+4. **Update workflow** in `.github/workflows/build.yml`:
+   ```yaml
+   prepare:
+     steps:
+       - name: Set build matrix
+         run: |
+           echo 'matrix=["esp32_dev","esp32s3_dev","your_new_board"]' >> $GITHUB_OUTPUT
+   ```
+
+5. **Update flasher UI** in `flasher/app.js`:
    ```javascript
    const BOARDS = {
      // ... existing boards
@@ -141,7 +155,9 @@ When you add a new board to the template:
    };
    ```
 
-5. **Commit and create a new release** - workflow will handle the rest!
+6. **Commit and create a new release** - workflow will handle the rest!
+
+**Note:** The CI/CD workflows still use hardcoded board lists for matrix builds. This is intentional to maintain explicit control over which boards are built in GitHub Actions.
 
 ## 🐛 Troubleshooting
 

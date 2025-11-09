@@ -70,17 +70,16 @@ Creates Pull Request → main
 │ │ 3. Install   │              │ 3. Install   │
 │ │    Arduino   │              │    Arduino   │       │
 │ │    CLI       │              │    CLI       │       │
-│ │ 4. Install   │              │ 4. Install   │       │
-│ │    ESP32     │              │    ESP32     │       │
-│ │    core      │              │    core      │       │
-│ │ 5. Install   │              │ 5. Install   │       │
-│ │    libs      │              │    libs      │       │
-│ │ 6. Build     │              │ 6. Build     │       │
-│ │    firmware  │              │    firmware  │       │
-│ │ 7. Check     │              │ 7. Check     │       │
+│ │ 4. Run       │              │ 4. Run       │       │
+│ │    build.sh  │              │    build.sh  │       │
+│ │    (auto     │              │    (auto     │       │
+│ │    installs  │              │    installs  │       │
+│ │    cores &   │              │    cores &   │       │
+│ │    libs)     │              │    libs)     │       │
+│ │ 5. Check     │              │ 5. Check     │       │
 │ │    size      │              │    size      │       │
 │ │    <1.5MB    │              │    <1.5MB    │       │
-│ │ 8. Upload    │              │ 8. Upload    │       │
+│ │ 6. Upload    │              │ 6. Upload    │       │
 │ │    artifact  │              │    artifact  │       │
 │ └──────────────┘              └──────────────┘       │
 └────────────────────────────────────────────────────────┘
@@ -378,7 +377,12 @@ User visits flasher site
 
 ### Adding a New Board
 
-**1. Update build matrix** in `.github/workflows/build.yml`:
+**1. Create board files** in `boards/new_board/`:
+- `board.json` - Board metadata with name and FQBN
+- `board_config.h` - Hardware constants
+- `new_board.ino` - Minimal sketch
+
+**2. Update build matrix** in `.github/workflows/build.yml`:
 ```yaml
 prepare:
   steps:
@@ -387,7 +391,7 @@ prepare:
         echo 'matrix=["esp32_dev","esp32s3_dev","new_board"]' >> $GITHUB_OUTPUT
 ```
 
-**2. Update release workflow** in `.github/workflows/release.yml`:
+**3. Update release workflow** in `.github/workflows/release.yml`:
 ```yaml
 build:
   strategy:
@@ -395,7 +399,7 @@ build:
       board: [esp32_dev, esp32s3_dev, new_board]
 ```
 
-**3. Update manifest script** in `scripts/generate_manifests.sh`:
+**4. Update manifest script** in `scripts/generate_manifests.sh`:
 ```bash
 # Add new board section
 cat > "${FLASHER_DIR}/manifest_new_board.json" << EOF
@@ -406,13 +410,16 @@ cat > "${FLASHER_DIR}/manifest_new_board.json" << EOF
 EOF
 ```
 
-**4. Update flasher UI** in `flasher/app.js`:
+**5. Update flasher UI** in `flasher/app.js`:
 ```javascript
 const devices = [
   { id: 'esp32_dev', name: 'ESP32 DevKit V1', ... },
   { id: 'esp32s3_dev', name: 'ESP32-S3 DevKit', ... },
   { id: 'new_board', name: 'New Board Name', ... }
 ];
+```
+
+**Note:** Local build scripts (build.ps1/build.sh) automatically discover boards from board.json files - no manual editing needed for local builds!
 ```
 
 ### Changing Build Triggers

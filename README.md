@@ -99,10 +99,12 @@ esp32-multiboard-template/
 ├── boards/                          # Board-specific sketches
 │   ├── esp32_dev/
 │   │   ├── esp32_dev.ino           # Minimal sketch (10 lines)
-│   │   └── board_config.h          # Hardware-specific constants
+│   │   ├── board_config.h          # Hardware-specific constants
+│   │   └── board.json              # Board metadata (name, FQBN, board manager URL)
 │   └── esp32s3_dev/
 │       ├── esp32s3_dev.ino
-│       └── board_config.h
+│       ├── board_config.h
+│       └── board.json
 │
 ├── common/                          # Shared library code
 │   ├── library.properties          # Arduino library metadata
