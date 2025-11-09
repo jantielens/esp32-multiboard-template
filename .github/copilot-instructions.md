@@ -182,6 +182,43 @@ docs/
   - `HAS_BUTTON`, `WAKE_BUTTON_PIN`
   - `LED_PIN`
 
+## Customizing the Template
+
+**Where to add your application logic:**
+
+1. **Open `common/src/main_sketch.ino.inc`**
+2. **Find `performCustomWork()` function** (top of file, clearly marked with "START HERE")
+3. **Replace the simulated work** with your actual logic:
+   - Sensor reading (temperature, humidity, GPS, etc.)
+   - Display updates (e-ink, LCD, OLED)
+   - Actuator control (relays, motors, servos)
+   - Data processing or calculations
+
+**Example customization:**
+```cpp
+void performCustomWork() {
+  // Read sensor
+  float temperature = readTemperatureSensor();
+  
+  // Display on screen
+  display.clearDisplay();
+  display.println("Temp: " + String(temperature) + "°C");
+  display.display();
+  
+  // Log to serial
+  LogBox::messagef("Sensor", "Temperature: %.2f°C", temperature);
+}
+```
+
+**What NOT to modify:**
+- Helper functions at the bottom (unless you understand the flow)
+- setup() function (high-level flow is optimized)
+- Component initialization order
+
+**Re-entering config mode after deployment:**
+- Hold WAKE_BUTTON_PIN during boot
+- OR let WiFi connection fail (enters config mode automatically)
+
 ## Code Change Guidelines
 
 ### Adding New Features
@@ -720,6 +757,8 @@ git push origin v1.2.3
 - Test all boards before claiming complete
 - Board configs control hardware differences
 - Build script handles file copying automatically
+
+
 
 
 
