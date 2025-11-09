@@ -95,9 +95,9 @@ build_board() {
     rm -rf "$build_dir"
     mkdir -p "$build_dir"
     
-    # Copy all .cpp and .h files from common/src/ to board directory
+    # Copy all .cpp, .h, and .ino.inc files from common/src/ to board directory
     print_info "Copying common source files..."
-    find common/src -name "*.cpp" -o -name "*.h" | while read -r file; do
+    find common/src \( -name "*.cpp" -o -name "*.h" -o -name "*.ino.inc" \) | while read -r file; do
         filename=$(basename "$file")
         cp "$file" "$board_dir/"
         echo "Copied $filename"
@@ -113,7 +113,7 @@ build_board() {
     
     # Clean up copied files
     print_info "Cleaning up copied files..."
-    find common/src -name "*.cpp" -o -name "*.h" | while read -r file; do
+    find common/src \( -name "*.cpp" -o -name "*.h" -o -name "*.ino.inc" \) | while read -r file; do
         filename=$(basename "$file")
         rm -f "$board_dir/$filename"
     done

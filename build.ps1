@@ -40,7 +40,8 @@ function Build-Board {
     
     $commonCppFiles = Get-ChildItem -Path (Join-Path $COMMON_PATH "src") -Filter "*.cpp" -Recurse
     $commonHFiles = Get-ChildItem -Path (Join-Path $COMMON_PATH "src") -Filter "*.h" -Recurse
-    $allCommonFiles = $commonCppFiles + $commonHFiles
+    $commonIncFiles = Get-ChildItem -Path (Join-Path $COMMON_PATH "src") -Filter "*.ino.inc" -Recurse
+    $allCommonFiles = $commonCppFiles + $commonHFiles + $commonIncFiles
     
     foreach ($file in $allCommonFiles) {
         $destPath = Join-Path $SKETCH_PATH $file.Name
