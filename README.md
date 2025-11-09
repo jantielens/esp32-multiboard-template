@@ -41,9 +41,11 @@ cd your-new-repo
 ### For Users (Flashing Devices)
 
 **Option 1: Web Flasher (Recommended)**
-1. Visit `https://yourusername.github.io/esp32-multiboard-template/`
+1. Visit [https://jantielens.github.io/esp32-multiboard-template/](https://jantielens.github.io/esp32-multiboard-template/)
 2. Connect device via USB
 3. Click "Install" to flash firmware
+
+_Note: When you create your own project from this template, the web flasher will be automatically deployed to `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/` after your first release!_
 
 **Option 2: Download Binaries**
 - Visit [Releases](../../releases) page
