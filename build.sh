@@ -75,12 +75,18 @@ load_board_configurations() {
         
         local python_cmd=$(command -v python3 || command -v python)
         
-        local board_display_name=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('name', ''))" 2>/dev/null || echo "")
-        local board_fqbn=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('fqbn', ''))" 2>/dev/null || echo "")
-        local board_manager_url=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('board_manager_url', ''))" 2>/dev/null || echo "")
+        print_gray "Parsing $board_json..."
+        
+        # Parse JSON with explicit error handling (set -e compatible)
+        set +e  # Temporarily disable exit on error
+        board_display_name=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('name', ''))" 2>/dev/null)
+        board_fqbn=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('fqbn', ''))" 2>/dev/null)
+        board_manager_url=$($python_cmd -c "import json; print(json.load(open('$board_json')).get('board_manager_url', ''))" 2>/dev/null)
+        set -e  # Re-enable exit on error
         
         if [ -z "$board_display_name" ] || [ -z "$board_fqbn" ]; then
             print_warning "WARNING: Skipping $board_name - board.json missing 'name' or 'fqbn'"
+            print_gray "  name='$board_display_name', fqbn='$board_fqbn'"
             continue
         fi
         
