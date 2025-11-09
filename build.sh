@@ -119,29 +119,43 @@ discover_board_manager_urls() {
     
     if [ "$board_arg" = "all" ]; then
         # Collect from all boards
+        print_gray "Scanning all boards for board manager URLs..."
         for board_name in "${!BOARDS[@]}"; do
             local url="${BOARD_MANAGER_URLS[$board_name]}"
             if [ -n "$url" ]; then
+                print_gray "  Found URL for $board_name: $url"
                 unique_urls[$url]=1
+            else
+                print_gray "  No URL for $board_name (will use default)"
             fi
         done
     else
         # Collect from specific board
+        print_gray "Checking board manager URL for: $board_arg"
         local url="${BOARD_MANAGER_URLS[$board_arg]}"
         if [ -n "$url" ]; then
+            print_gray "  Found URL: $url"
             unique_urls[$url]=1
+        else
+            print_gray "  No URL configured (will use default)"
         fi
     fi
     
     # Add discovered URLs to arduino-cli config
-    for url in "${!unique_urls[@]}"; do
-        print_gray "Adding board manager URL: $url"
-        $ARDUINO_CLI config add board_manager.additional_urls "$url" 2>/dev/null || true
-    done
+    if [ ${#unique_urls[@]} -eq 0 ]; then
+        print_info "No additional board manager URLs to add"
+    else
+        print_info "Adding ${#unique_urls[@]} board manager URL(s) to arduino-cli config..."
+        for url in "${!unique_urls[@]}"; do
+            print_gray "  Adding: $url"
+            $ARDUINO_CLI config add board_manager.additional_urls "$url" 2>/dev/null || true
+        done
+    fi
     
     # Update core index after adding URLs
     print_info "Updating core index..."
     $ARDUINO_CLI core update-index
+    print_success "Core index updated successfully"
 }
 
 # Function to install required cores
@@ -155,47 +169,68 @@ install_cores() {
     declare -A unique_cores
     
     if [ "$board_arg" = "all" ]; then
+        print_gray "Extracting cores from all board FQBNs..."
         for board_name in "${!BOARDS[@]}"; do
             local fqbn="${BOARDS[$board_name]}"
             # Extract package:arch from FQBN (format: package:arch:board)
             if [[ $fqbn =~ ^([^:]+:[^:]+) ]]; then
-                unique_cores[${BASH_REMATCH[1]}]=1
+                local core="${BASH_REMATCH[1]}"
+                print_gray "  $board_name requires core: $core"
+                unique_cores[$core]=1
+            else
+                print_warning "  WARNING: Could not parse FQBN for $board_name: $fqbn"
             fi
         done
     else
+        print_gray "Extracting core from board FQBN..."
         local fqbn="${BOARDS[$board_arg]}"
         if [[ $fqbn =~ ^([^:]+:[^:]+) ]]; then
-            unique_cores[${BASH_REMATCH[1]}]=1
+            local core="${BASH_REMATCH[1]}"
+            print_gray "  Requires core: $core"
+            unique_cores[$core]=1
+        else
+            print_error "ERROR: Could not parse FQBN: $fqbn"
+            exit 1
         fi
     fi
     
+    print_info "Need to install ${#unique_cores[@]} unique core(s)"
+    
     # Install each unique core
     for core in "${!unique_cores[@]}"; do
+        print_info "Checking core: $core"
         if ! $ARDUINO_CLI core list | grep -q "^$core"; then
             print_warning "Core $core not installed"
             print_info "Installing $core..."
             
             # For esp32:esp32, pin to specific version for consistency
             if [ "$core" = "esp32:esp32" ]; then
+                print_gray "  Using pinned version: $ESP32_CORE_VERSION"
                 $ARDUINO_CLI core install "$core@$ESP32_CORE_VERSION"
             else
                 # For other cores, install latest version
+                print_gray "  Using latest version"
                 $ARDUINO_CLI core install "$core"
             fi
+            print_success "Core $core installed successfully"
         else
-            print_info "Core $core already installed"
+            print_success "Core $core already installed"
         fi
     done
 }
 
 # Function to check PubSubClient library
 check_libraries() {
+    print_info ""
+    print_info "Checking Library Installation..."
+    
     if ! $ARDUINO_CLI lib list | grep -q "PubSubClient"; then
         print_warning "PubSubClient library not installed"
         print_info "Installing PubSubClient..."
         $ARDUINO_CLI lib install "PubSubClient"
+        print_success "PubSubClient installed successfully"
     else
-        print_info "PubSubClient library already installed"
+        print_success "PubSubClient library already installed"
     fi
 }
 
@@ -272,6 +307,15 @@ fi
 # Load board configurations
 load_board_configurations
 
+# Validate board argument if not "all"
+if [ "$1" != "all" ]; then
+    if [ -z "${BOARDS[$1]}" ]; then
+        print_error "ERROR: Unknown board '$1'"
+        print_warning "Available boards: ${!BOARDS[@]}"
+        exit 1
+    fi
+fi
+
 # Check prerequisites
 check_arduino_cli
 
@@ -297,12 +341,6 @@ if [ "$1" = "all" ]; then
     print_success "All boards built successfully!"
     print_success "═══════════════════════════════════════"
 else
-    # Validate board exists
-    if [ -z "${BOARDS[$1]}" ]; then
-        print_error "ERROR: Unknown board '$1'"
-        print_warning "Available boards: ${!BOARDS[@]}"
-        exit 1
-    fi
     # Build specific board
     build_board "$1"
 fi
