@@ -42,3 +42,22 @@ String APModeController::getAPName() {
 String APModeController::getAPIP() {
     return wifiManager->getAPIPAddress();
 }
+
+void APModeController::runConfigurationLoop(const char* message) {
+    if (message) {
+        LogBox::message("Config Mode", message);
+    }
+
+    LogBox::message("AP Mode", "Connect to: " + getAPName());
+    LogBox::message("AP Mode", "Configure at: http://" + getAPIP());
+
+    // Wait for configuration
+    while (!isConfigReceived()) {
+        handleClient();
+        delay(10);
+    }
+
+    LogBox::message("AP Mode", "Configuration received, rebooting...");
+    delay(2000);
+    ESP.restart();
+}

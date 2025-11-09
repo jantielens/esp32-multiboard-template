@@ -42,7 +42,17 @@ public:
      * @brief Get Access Point IP address
      */
     String getAPIP();
-    
+
+    /**
+     * @brief Run configuration loop until config is received
+     * 
+     * This is a blocking call that waits for the user to submit
+     * configuration through the web portal, then reboots the device.
+     * 
+     * @param message Optional message to display before entering loop
+     */
+    void runConfigurationLoop(const char* message = nullptr);
+
 private:
     WiFiManager* wifiManager;
     ConfigPortal* configPortal;
