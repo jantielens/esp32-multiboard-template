@@ -136,7 +136,7 @@ discover_board_manager_urls() {
     # Add discovered URLs to arduino-cli config
     for url in "${!unique_urls[@]}"; do
         print_gray "Adding board manager URL: $url"
-        $ARDUINO_CLI config add board_manager.additional_urls "$url"
+        $ARDUINO_CLI config add board_manager.additional_urls "$url" 2>/dev/null || true
     done
     
     # Update core index after adding URLs
