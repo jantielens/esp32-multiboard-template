@@ -13,14 +13,10 @@ on:
   workflow_dispatch:
     inputs:
       board:
-        description: 'Board to build (esp32_dev, esp32s3_dev, or all)'
+        description: 'Board to build'
         required: false
         default: 'all'
-        type: choice
-        options:
-          - all
-          - esp32_dev
-          - esp32s3_dev
+        type: string
 
 permissions:
   contents: read
