@@ -13,7 +13,13 @@
 - **CI/CD:** GitHub Actions (build validation, release automation, GitHub Pages deployment)
 - **Target Runtime:** ESP32 with optional battery power and deep sleep
 
-**Project Size:** ~30 source files, ~10 documentation files, 3 GitHub Actions workflows
+**Project Size:** ~30 source files, ~12 documentation files, 3 GitHub Actions workflows
+
+**Documentation Structure:**
+- `/README.md` - 30-second pitch and quick start
+- `/docs/DEVELOPER_GUIDE.md` - Complete developer guide (components, API, architecture)
+- `/docs/device/USER_GUIDE.md` - End-user device guide (WiFi setup, MQTT, OTA)
+- `/docs/` - Additional developer documentation (CI/CD, customization, workflows)
 
 ## Critical Build Requirements
 
@@ -747,13 +753,23 @@ git push origin v1.2.3
 
 ## Documentation
 
-- **[README.md](../README.md)** - Main project overview
+**Primary Documentation:**
+- **[README.md](../README.md)** - Quick start and feature overview
+- **[docs/DEVELOPER_GUIDE.md](../docs/DEVELOPER_GUIDE.md)** - Complete developer guide (getting started, components, API reference, architecture)
+- **[docs/device/USER_GUIDE.md](../docs/device/USER_GUIDE.md)** - End-user device guide (first boot, WiFi, MQTT, OTA, troubleshooting)
+
+**Developer Documentation:**
 - **[FIRST_DEPLOYMENT.md](../FIRST_DEPLOYMENT.md)** - First-time deployment checklist
-- **[docs/CICD_FLOW.md](../docs/CICD_FLOW.md)** - CI/CD pipeline visualization
-- **[docs/PR_WORKFLOW.md](../docs/PR_WORKFLOW.md)** - PR validation guide
-- **[docs/WEB_FLASHER_SETUP.md](../docs/WEB_FLASHER_SETUP.md)** - Flasher setup guide
 - **[docs/CUSTOMIZATION.md](../docs/CUSTOMIZATION.md)** - Adding boards and features
+- **[docs/PR_WORKFLOW.md](../docs/PR_WORKFLOW.md)** - PR validation guide
+- **[docs/CICD_FLOW.md](../docs/CICD_FLOW.md)** - CI/CD pipeline visualization
+- **[docs/WEB_FLASHER_SETUP.md](../docs/WEB_FLASHER_SETUP.md)** - Flasher setup guide
 - **[docs/GH_PAGES_BRANCH.md](../docs/GH_PAGES_BRANCH.md)** - Branch strategy
+
+**Documentation Organization:**
+- Device users: See `/docs/device/USER_GUIDE.md`
+- Template developers: See `/docs/DEVELOPER_GUIDE.md` first, then other `/docs/*.md` files
+- Clear separation between end-user docs and developer docs
 
 ## Final Notes**Trust these instructions.** The project uses a non-standard Arduino pattern for code sharing. Only search for additional information if:
 - Instructions are incomplete for your specific task
@@ -761,10 +777,11 @@ git push origin v1.2.3
 - User requests functionality not documented
 
 **When in doubt:**
-1. Check `docs/CUSTOMIZATION.md` for feature customization details
-2. Check `boards/esp32_dev/` for working example
-3. Check `README.md` for user-facing documentation
-4. Review component headers in `common/src/` for API documentation
+1. Check `docs/DEVELOPER_GUIDE.md` for complete component API documentation
+2. Check `docs/CUSTOMIZATION.md` for adding boards and features
+3. Check `boards/esp32_dev/` for working example
+4. Check `docs/device/USER_GUIDE.md` for end-user device documentation
+5. Check `README.md` for quick start and overview
 
 **Remember:**
 - Use simple includes (no `../` paths)
