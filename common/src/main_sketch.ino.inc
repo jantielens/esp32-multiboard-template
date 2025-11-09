@@ -90,9 +90,43 @@ void setup() {
   }
 
   LogBox::message("Setup Complete", "Device ready");
+  
+  // ==========================================================================
+  // TODO: Add your custom application logic here
+  // ==========================================================================
+  // This is where you implement your device-specific functionality.
+  // Examples:
+  // - Read sensors (temperature, humidity, light, etc.)
+  // - Control actuators (relays, motors, servos, etc.)
+  // - Display information on screens
+  // - Capture and process images
+  // - Perform calculations or data processing
+  //
+  // For now, we'll simulate some work with a delay:
+  
+  LogBox::message("Work", "Performing custom work...");
+  delay(2000); // Simulate 2 seconds of work
+  LogBox::message("Work", "Custom work completed");
+  
+  // ==========================================================================
+  // Enter deep sleep to save power
+  // ==========================================================================
+  // After completing work, enter deep sleep to conserve battery.
+  // The device will wake up based on the configured sleep interval.
+  
+  #if HAS_BATTERY
+  uint32_t sleepDuration = configManager.getSleepDuration();
+  LogBox::messagef("Power", "Entering deep sleep for %d seconds", sleepDuration);
+  
+  powerManager.enterDeepSleep(sleepDuration);
+  #else
+  // No battery - stay awake and blink LED
+  LogBox::message("Power", "Staying awake");
+  #endif
 }
 
 void loop() {
+  // This loop only runs if deep sleep is not supported or disabled
   // Blink LED to show we're running
   digitalWrite(LED_PIN, HIGH);
   delay(500);
