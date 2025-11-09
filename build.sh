@@ -93,15 +93,22 @@ load_board_configurations() {
             continue
         fi
         
+        print_gray "Storing board configuration..."
         BOARDS[$board_name]=$board_fqbn
+        print_gray "  Stored FQBN"
         BOARD_MANAGER_URLS[$board_name]=$board_manager_url
+        print_gray "  Stored board manager URL"
+        
         print_gray "Discovered board: $board_name ($board_display_name)"
         print_gray "  FQBN: $board_fqbn"
         if [ -n "$board_manager_url" ]; then
             print_gray "  Board Manager URL: $board_manager_url"
         fi
-        ((board_count++))
+        
+        print_gray "Incrementing counter..."
+        board_count=$((board_count + 1))
         print_gray "  Board count now: $board_count"
+        print_gray "Continuing to next directory..."
     done
     
     print_info "Finished scanning directories"
