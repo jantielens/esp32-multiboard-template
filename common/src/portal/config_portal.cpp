@@ -210,6 +210,7 @@ String ConfigPortal::generateConfigPage() {
     String secondaryDNS = _configManager->getSecondaryDNS();
     String mqttBroker = _configManager->getMQTTBroker();
     String mqttUsername = _configManager->getMQTTUsername();
+    String mqttPassword = _configManager->getMQTTPassword();
     bool debugMode = _configManager->getDebugMode();
     
     String html = getHtmlHeader();
@@ -262,7 +263,7 @@ String ConfigPortal::generateConfigPage() {
     html += "<label>MQTT Username</label>";
     html += "<input type='text' name='mqttUsername' value='" + mqttUsername + "'>";
     html += "<label>MQTT Password</label>";
-    html += "<input type='password' name='mqttPassword'>";
+    html += "<input type='password' name='mqttPassword' value='" + mqttPassword + "'>";
     html += "</div>";
     
     // Advanced settings
