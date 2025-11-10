@@ -145,19 +145,9 @@ When you add a new board to the template:
            echo 'matrix=["esp32_dev","esp32s3_dev","your_new_board"]' >> $GITHUB_OUTPUT
    ```
 
-5. **Update flasher UI** in `flasher/app.js`:
-   ```javascript
-   const BOARDS = {
-     // ... existing boards
-     your_new_board: {
-       name: 'Your New Board Name',
-       icon: '🔧',
-       description: 'Brief description'
-     }
-   };
-   ```
+5. **Commit and create a new release** - workflow will handle the rest!
 
-6. **Commit and create a new release** - workflow will handle the rest!
+**Note:** The flasher UI (`flasher/app.js`) now dynamically discovers boards from manifest files, so no manual editing is needed!
 
 **Note:** The CI/CD workflows still use hardcoded board lists for matrix builds. This is intentional to maintain explicit control over which boards are built in GitHub Actions.
 
