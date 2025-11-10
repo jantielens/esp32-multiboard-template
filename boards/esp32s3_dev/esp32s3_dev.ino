@@ -7,11 +7,6 @@
    Board-specific configuration is in board_config.h.
 */
 
-// Board validation
-#ifndef ARDUINO_ESP32S3_DEV
-#error "Wrong board selection for this sketch, please select ESP32S3 Dev Module in the boards menu."
-#endif
-
 // Include board configuration first (required by shared code)
 #include "board_config.h"
 

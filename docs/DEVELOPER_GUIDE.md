@@ -87,8 +87,7 @@ The template uses a **non-standard Arduino pattern** to share code across multip
 
 1. **Common code** lives in `common/src/` (`.cpp`, `.h` files organized by feature)
 2. **Shared setup()/loop()** is in `common/src/main_sketch.ino.inc` (NOT a `.ino` file!)
-3. **Board-specific sketches** are minimal in `boards/{board}/{board}.ino` (~20 lines each)
-   - Board validation (ensures correct board selected in Arduino IDE)
+3. **Board-specific sketches** are minimal in `boards/{board}/{board}.ino` (~15 lines each)
    - Includes `board_config.h` (hardware constants)
    - Includes `main_sketch.ino.inc` (shared implementation)
 4. **Board configs** define hardware constants in `boards/{board}/board_config.h`
@@ -104,11 +103,6 @@ The build scripts handle compilation automatically:
 
 **Example board sketch** (`boards/esp32_dev/esp32_dev.ino`):
 ```cpp
-// Board validation
-#if !defined(ARDUINO_ESP32_DEV) && !defined(ARDUINO_LOLIN_D32)
-#error "Wrong board selection, please select ESP32 Dev Module"
-#endif
-
 // Include board configuration first
 #include "board_config.h"
 
