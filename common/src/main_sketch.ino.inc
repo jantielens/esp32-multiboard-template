@@ -16,7 +16,7 @@
 #define RUN_CONTINUOUSLY 2
 
 // =============================================================================
-// Device Operation Mode Configuration
+// 👉 Device Operation Mode Configuration - CUSTOMIZE THIS!
 // =============================================================================
 // Select your device's loop behavior:
 // - RUN_ONCE_THEN_SLEEP: Loop runs once per wake cycle, then device enters deep sleep
@@ -101,7 +101,7 @@ void setup() {
 
 void loop() {
   // ===========================================================================
-  // YOUR CUSTOM CODE HERE - Add your application logic below:
+  // YOUR CUSTOM CODE BELOW - Add your application logic below:
   //
   // This loop() function behavior depends on LOOP_BEHAVIOR configuration:
   //
@@ -128,7 +128,7 @@ void loop() {
   LogBox::begin("Custom Work");
   LogBox::line("Performing application logic...");
 
-  // TODO: Replace with your actual work
+  // 👉 TODO: Replace with your actual work
   digitalWrite(LED_PIN, HIGH);
   delay(500);
   digitalWrite(LED_PIN, LOW);
@@ -148,5 +148,5 @@ void loop() {
   enterSleepMode(powerManager, configManager, 60);
 #endif
 
-  delay(20000); // Wait 20 seconds before next loop iteration, only for always-on mode
+  delay(20000); // 👉 Wait 20 seconds before next loop iteration, only for always-on mode
 }
