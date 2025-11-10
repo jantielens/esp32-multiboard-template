@@ -400,7 +400,9 @@ void PowerManager::enableWatchdog(uint32_t timeoutSeconds) {
     LogBox::linef("Enabling watchdog with %u second timeout", timeoutSeconds);
     
     try {
-        // Initialize watchdog task with specified timeout (ESP32 core 3.x API)
+        // Check ESP32 Arduino core version for API compatibility
+        #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+        // ESP32 core 3.x and newer API
         esp_task_wdt_config_t wdt_config = {
             .timeout_ms = timeoutSeconds * 1000,
             .idle_core_mask = 0,
@@ -408,6 +410,11 @@ void PowerManager::enableWatchdog(uint32_t timeoutSeconds) {
         };
         esp_task_wdt_init(&wdt_config);
         esp_task_wdt_add(NULL);  // Monitor current task (main loop)
+        #else
+        // ESP32 core 2.x and older API
+        esp_task_wdt_init(timeoutSeconds, true);  // timeout, panic on trigger
+        esp_task_wdt_add(NULL);  // Monitor current task (main loop)
+        #endif
         
         LogBox::line("Watchdog enabled successfully");
         LogBox::end();
@@ -422,7 +429,7 @@ void PowerManager::disableWatchdog() {
     LogBox::line("Disabling watchdog");
     
     try {
-        esp_task_wdt_delete(NULL);  // Remove current task from monitoring
+        esp_task_wdt_delete(NULL);  // Remove current task from monitoring (same API for both versions)
         LogBox::line("Watchdog disabled successfully");
         LogBox::end();
     } catch (...) {
