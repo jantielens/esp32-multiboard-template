@@ -1,8 +1,9 @@
 # ESP32 Multi-Board Template - .gitignore for main branch
 # (For gh-pages branch, see gh-pages-gitignore.txt)
 
-# Flasher - auto-generated files (generated from package.json during deployment)
+# Flasher - auto-generated files (generated during deployment/release workflow)
 flasher/config.js
+flasher/manifest_*.json
 
 # Build artifacts
 build/
