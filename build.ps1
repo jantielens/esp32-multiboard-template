@@ -95,6 +95,34 @@ function Build-Board {
         Write-Host "Copied $($file.Name)" -ForegroundColor Gray
     }
     
+    # Update the copied package_config.h with values from package.json
+    $copiedPackageConfigPath = Join-Path $SKETCH_PATH "package_config.h"
+    if (Test-Path $copiedPackageConfigPath) {
+        $packageJsonPath = Join-Path $WORKSPACE_PATH "package.json"
+        if (Test-Path $packageJsonPath) {
+            try {
+                $packageJson = Get-Content $packageJsonPath -Raw | ConvertFrom-Json
+                $content = Get-Content $copiedPackageConfigPath -Raw
+                
+                if ($packageJson.name) {
+                    $content = $content -replace '#define PACKAGE_NAME ".*"', "#define PACKAGE_NAME `"$($packageJson.name)`""
+                }
+                if ($packageJson.displayName) {
+                    $content = $content -replace '#define PACKAGE_DISPLAY_NAME ".*"', "#define PACKAGE_DISPLAY_NAME `"$($packageJson.displayName)`""
+                }
+                if ($packageJson.displayNameShort) {
+                    $content = $content -replace '#define PACKAGE_DISPLAY_NAME_SHORT ".*"', "#define PACKAGE_DISPLAY_NAME_SHORT `"$($packageJson.displayNameShort)`""
+                }
+                
+                Set-Content $copiedPackageConfigPath $content -NoNewline
+                Write-Host "Updated copied package_config.h with values from package.json" -ForegroundColor Gray
+            }
+            catch {
+                Write-Host "WARNING: Could not update package_config.h from package.json" -ForegroundColor Yellow
+            }
+        }
+    }
+    
     Write-Host "Compiling..." -ForegroundColor Yellow
     
     $BOARD_CONFIG_PATH = "$WORKSPACE_PATH\$SKETCH_PATH"

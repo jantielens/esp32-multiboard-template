@@ -186,11 +186,18 @@ docs/
 
 ### Configuration Files
 
-- **`package.json`** (root): Project metadata for web flasher
-  - `displayName` - Full project name (shown in flasher header, page title)
+- **`package.json`** (root): Project metadata for web flasher AND config portal
+  - `displayName` - Full project name (shown in flasher header, page title, AND config portal heading)
   - `displayNameShort` - Short name (used in buttons like "Install ESP32 Template")
   - **Note:** `description` and `repository` are automatically fetched from GitHub repository during deployment
   - **Auto-generates `flasher/config.js` during deployment** (DO NOT commit config.js)
+  - **Build scripts inject values into `package_config.h` during compilation**
+
+- **`common/src/package_config.h`**: Project metadata accessible to C++ code
+  - Contains default values: `PACKAGE_NAME`, `PACKAGE_DISPLAY_NAME`, `PACKAGE_DISPLAY_NAME_SHORT`
+  - Build scripts read `package.json` and inject actual values into copied file during build
+  - Original file never modified - only the copied version in board directory is updated
+  - Included by `config_portal.cpp` to display project name as portal heading
 
 - **`common/library.properties`**: Arduino library metadata
 

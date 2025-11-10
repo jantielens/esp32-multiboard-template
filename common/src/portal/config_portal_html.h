@@ -6,7 +6,7 @@ const char HTML_PAGE_HEADER[] PROGMEM = R"(<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32 Configuration</title>
+<title>{{TITLE}}</title>
 )";
 
 #endif // CONFIG_PORTAL_HTML_H

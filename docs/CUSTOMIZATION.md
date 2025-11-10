@@ -19,23 +19,26 @@ Edit **`package.json`** in the project root:
 ```
 
 **Key fields:**
-- `displayName` - Full project name (shown in header, page title of web flasher)
+- `displayName` - Full project name (shown in web flasher header/page title AND device config portal heading)
 - `displayNameShort` - Short name (used in buttons like "Install ESP32 Template")
 
 **Note:** The `description` and `repository` fields are automatically pulled from your GitHub repository settings during deployment, so you don't need to maintain them in package.json.
 
 ### How It Works
 
-During deployment, the CI/CD workflow automatically generates `flasher/config.js`:
+The package.json metadata is used in two places:
 
-1. You edit `package.json` in main branch (for display names)
-2. You edit GitHub repository description (Settings → About section)
-3. On release (git tag), CI/CD workflow:
-   - Reads `package.json` with `jq` for display names
-   - Fetches repository description and URL from GitHub API
-   - Generates `flasher/config.js` with combined metadata
-   - Deploys to gh-pages branch
-4. Web flasher loads `config.js` and updates all page elements dynamically
+**1. Firmware Build (automatic):**
+- Build script reads `package.json` and injects values into `common/src/package_config.h` during compilation
+- Config portal displays `displayName` as heading: "ESP32 Multi-Board Template Configuration"
+- Values are injected into copied files only - original source stays pristine
+
+**2. Web Flasher Deployment (on git tag):**
+- CI/CD workflow reads `package.json` for display names
+- Fetches repository description and URL from GitHub API
+- Generates `flasher/config.js` with combined metadata
+- Deploys to gh-pages branch
+- Web flasher loads `config.js` and updates all page elements dynamically
 
 **Note:** `flasher/config.js` is auto-generated and should NOT be committed (it's in `.gitignore`).
 

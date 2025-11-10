@@ -2,6 +2,15 @@
 #include "config_portal_html.h"
 #include "config_portal_css.h"
 #include "logger.h"
+#include "package_config.h"
+#include "board_config.h"
+
+// Helper function to generate HTML header with dynamic title
+static String getHtmlHeader() {
+    String header = String(HTML_PAGE_HEADER);
+    header.replace("{{TITLE}}", String(PACKAGE_DISPLAY_NAME) + " Configuration");
+    return header;
+}
 
 ConfigPortal::ConfigPortal(ConfigManager* configManager, WiFiManager* wifiManager,
                            PowerManager* powerManager, MQTTManager* mqttManager)
@@ -190,6 +199,8 @@ void ConfigPortal::handleNotFound() {
 
 String ConfigPortal::generateConfigPage() {
     String deviceID = _wifiManager->getDeviceIdentifier();
+    String currentSSID = _configManager->getWiFiSSID();
+    String currentPassword = _configManager->getWiFiPassword();
     String currentFriendlyName = _configManager->getFriendlyName();
     bool useStaticIP = _configManager->getUseStaticIP();
     String staticIP = _configManager->getStaticIP();
@@ -201,21 +212,21 @@ String ConfigPortal::generateConfigPage() {
     String mqttUsername = _configManager->getMQTTUsername();
     bool debugMode = _configManager->getDebugMode();
     
-    String html = HTML_PAGE_HEADER;
+    String html = getHtmlHeader();
     html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
     html += "</head><body>";
     html += "<div class='container'>";
-    html += "<h1>ESP32 Configuration</h1>";
-    html += "<p class='device-id'>Device: " + deviceID + "</p>";
+    html += "<h1>" + String(PACKAGE_DISPLAY_NAME) + " Configuration</h1>";
+    html += "<p class='device-id'>Device: " + deviceID + " (" + String(BOARD_NAME) + ")</p>";
     html += "<form method='POST' action='/submit'>";
     
     // WiFi settings
     html += "<div class='section'>";
     html += "<h2>WiFi Settings</h2>";
     html += "<label>WiFi SSID*</label>";
-    html += "<input type='text' name='ssid' required>";
+    html += "<input type='text' name='ssid' value='" + currentSSID + "' required>";
     html += "<label>WiFi Password</label>";
-    html += "<input type='password' name='password'>";
+    html += "<input type='password' name='password' value='" + currentPassword + "'>";
     html += "</div>";
     
     // Device settings
@@ -286,7 +297,7 @@ String ConfigPortal::generateConfigPage() {
 }
 
 String ConfigPortal::generateSuccessPage() {
-    String html = HTML_PAGE_HEADER;
+    String html = getHtmlHeader();
     html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
     html += "</head><body>";
     html += "<div class='container'>";
@@ -298,134 +309,8 @@ String ConfigPortal::generateSuccessPage() {
     return html;
 }
 
-String ConfigPortal::generateErrorPage(const String& error) {
-    String html = HTML_PAGE_HEADER;
-    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-    html += "</head><body>";
-    html += "<div class='container'>";
-    html += "<h1>Error</h1>";
-    html += "<p class='error'>" + error + "</p>";
-    html += "<a href='/'>Go Back</a>";
-    html += "</div></body></html>";
-    return html;
-}
-
-void ConfigPortal::handleFactoryReset() {
-    LogBox::message("Factory Reset", "Resetting device to factory defaults");
-
-    _configManager->clearConfig();
-
-    String html = HTML_PAGE_HEADER;
-    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-    html += "</head><body>";
-    html += "<div class='container'>";
-    html += "<h1>Factory Reset Complete</h1>";
-    html += "<p>Device has been reset to factory defaults.</p>";
-    html += "<p>The device will reboot now.</p>";
-    html += "</div>";
-    html += "<script>setTimeout(function(){window.location.href='/reboot';}, 2000);</script>";
-    html += "</body></html>";
-
-    _server->send(200, "text/html", html);
-    delay(1000);
-}
-
-void ConfigPortal::handleOTAPage() {
-    _server->send(200, "text/html", generateOTAPage());
-}
-
-void ConfigPortal::handleOTAUpload() {
-    // This is called after the upload handler finishes
-    if (Update.hasError()) {
-        String errorMsg = "Upload failed. Error: " + _otaManager.getLastError();
-        LogBox::message("OTA Error", errorMsg);
-        
-        String html = HTML_PAGE_HEADER;
-        html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-        html += "</head><body>";
-        html += "<div class='container'>";
-        html += "<h1>Update Failed</h1>";
-        html += "<p class='error'>" + errorMsg + "</p>";
-        html += "<a href='/ota'>Try Again</a>";
-        html += "</div></body></html>";
-        
-        _server->send(500, "text/html", html);
-    } else {
-        if (!_otaManager.endUpload()) {
-            String errorMsg = "Finalization failed: " + _otaManager.getLastError();
-            LogBox::message("OTA Error", errorMsg);
-            
-            String html = HTML_PAGE_HEADER;
-            html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-            html += "</head><body>";
-            html += "<div class='container'>";
-            html += "<h1>Update Failed</h1>";
-            html += "<p class='error'>" + errorMsg + "</p>";
-            html += "<a href='/ota'>Try Again</a>";
-            html += "</div></body></html>";
-            
-            _server->send(500, "text/html", html);
-            return;
-        }
-        
-        LogBox::message("OTA Success", "Firmware uploaded successfully");
-        
-        String html = HTML_PAGE_HEADER;
-        html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-        html += "</head><body>";
-        html += "<div class='container'>";
-        html += "<h1>Update Successful!</h1>";
-        html += "<p>Firmware has been uploaded successfully.</p>";
-        html += "<p>Device will reboot in 3 seconds...</p>";
-        html += "</div>";
-        html += "<script>setTimeout(function(){ESP.restart();}, 3000);</script>";
-        html += "</body></html>";
-        
-        _server->send(200, "text/html", html);
-        delay(3000);
-        ESP.restart();
-    }
-}
-
-void ConfigPortal::handleOTAFromURL() {
-    String firmwareUrl = _server->arg("firmwareUrl");
-    
-    if (firmwareUrl.length() == 0) {
-        _server->send(400, "text/html", generateErrorPage("Firmware URL is required"));
-        return;
-    }
-    
-    LogBox::begin("OTA from URL");
-    LogBox::line("URL: " + firmwareUrl);
-    LogBox::end();
-    
-    // Send immediate response
-    String html = HTML_PAGE_HEADER;
-    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
-    html += "</head><body>";
-    html += "<div class='container'>";
-    html += "<h1>Downloading Firmware...</h1>";
-    html += "<p>Downloading from: " + firmwareUrl + "</p>";
-    html += "<p>This may take several minutes. Do not power off the device.</p>";
-    html += "</div></body></html>";
-    
-    _server->send(200, "text/html", html);
-    _server->handleClient(); // Ensure response is sent
-    delay(100);
-    
-    // Perform the update
-    if (_otaManager.updateFromURL(firmwareUrl)) {
-        LogBox::message("OTA Success", "Update complete, rebooting...");
-        delay(2000);
-        ESP.restart();
-    } else {
-        LogBox::message("OTA Error", _otaManager.getLastError());
-        // Device will remain running, user can try again via portal
-    }
-}
-
 String ConfigPortal::generateOTAPage() {
-    String html = HTML_PAGE_HEADER;
+    String html = getHtmlHeader();
     html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
     html += "</head><body>";
     html += "<div class='container'>";
@@ -460,6 +345,132 @@ String ConfigPortal::generateOTAPage() {
     
     html += "</div></body></html>";
     return html;
+}
+
+String ConfigPortal::generateErrorPage(const String& error) {
+    String html = getHtmlHeader();
+    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+    html += "</head><body>";
+    html += "<div class='container'>";
+    html += "<h1>Error</h1>";
+    html += "<p class='error'>" + error + "</p>";
+    html += "<a href='/'>Go Back</a>";
+    html += "</div></body></html>";
+    return html;
+}
+
+void ConfigPortal::handleFactoryReset() {
+    LogBox::message("Factory Reset", "Resetting device to factory defaults");
+
+    _configManager->clearConfig();
+
+    String html = getHtmlHeader();
+    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+    html += "</head><body>";
+    html += "<div class='container'>";
+    html += "<h1>Factory Reset Complete</h1>";
+    html += "<p>Device has been reset to factory defaults.</p>";
+    html += "<p>The device will reboot now.</p>";
+    html += "</div>";
+    html += "<script>setTimeout(function(){window.location.href='/reboot';}, 2000);</script>";
+    html += "</body></html>";
+
+    _server->send(200, "text/html", html);
+    delay(1000);
+}
+
+void ConfigPortal::handleOTAPage() {
+    _server->send(200, "text/html", generateOTAPage());
+}
+
+void ConfigPortal::handleOTAUpload() {
+    // This is called after the upload handler finishes
+    if (Update.hasError()) {
+        String errorMsg = "Upload failed. Error: " + _otaManager.getLastError();
+        LogBox::message("OTA Error", errorMsg);
+        
+        String html = getHtmlHeader();
+        html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+        html += "</head><body>";
+        html += "<div class='container'>";
+        html += "<h1>Update Failed</h1>";
+        html += "<p class='error'>" + errorMsg + "</p>";
+        html += "<a href='/ota'>Try Again</a>";
+        html += "</div></body></html>";
+        
+        _server->send(500, "text/html", html);
+    } else {
+        if (!_otaManager.endUpload()) {
+            String errorMsg = "Finalization failed: " + _otaManager.getLastError();
+            LogBox::message("OTA Error", errorMsg);
+            
+            String html = getHtmlHeader();
+            html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+            html += "</head><body>";
+            html += "<div class='container'>";
+            html += "<h1>Update Failed</h1>";
+            html += "<p class='error'>" + errorMsg + "</p>";
+            html += "<a href='/ota'>Try Again</a>";
+            html += "</div></body></html>";
+            
+            _server->send(500, "text/html", html);
+            return;
+        }
+        
+        LogBox::message("OTA Success", "Firmware uploaded successfully");
+        
+        String html = getHtmlHeader();
+        html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+        html += "</head><body>";
+        html += "<div class='container'>";
+        html += "<h1>Update Successful!</h1>";
+        html += "<p>Firmware has been uploaded successfully.</p>";
+        html += "<p>Device will reboot in 3 seconds...</p>";
+        html += "</div>";
+        html += "<script>setTimeout(function(){ESP.restart();}, 3000);</script>";
+        html += "</body></html>";
+        
+        _server->send(200, "text/html", html);
+        delay(3000);
+        ESP.restart();
+    }
+}
+
+void ConfigPortal::handleOTAFromURL() {
+    String firmwareUrl = _server->arg("firmwareUrl");
+    
+    if (firmwareUrl.length() == 0) {
+        _server->send(400, "text/html", generateErrorPage("Firmware URL is required"));
+        return;
+    }
+    
+    LogBox::begin("OTA from URL");
+    LogBox::line("URL: " + firmwareUrl);
+    LogBox::end();
+    
+    // Send immediate response
+    String html = getHtmlHeader();
+    html += "<style>" + String(CONFIG_PORTAL_CSS) + "</style>";
+    html += "</head><body>";
+    html += "<div class='container'>";
+    html += "<h1>Downloading Firmware...</h1>";
+    html += "<p>Downloading from: " + firmwareUrl + "</p>";
+    html += "<p>This may take several minutes. Do not power off the device.</p>";
+    html += "</div></body></html>";
+    
+    _server->send(200, "text/html", html);
+    _server->handleClient(); // Ensure response is sent
+    delay(100);
+    
+    // Perform the update
+    if (_otaManager.updateFromURL(firmwareUrl)) {
+        LogBox::message("OTA Success", "Update complete, rebooting...");
+        delay(2000);
+        ESP.restart();
+    } else {
+        LogBox::message("OTA Error", _otaManager.getLastError());
+        // Device will remain running, user can try again via portal
+    }
 }
 
 bool ConfigPortal::validateIPv4Format(const String& ip) {

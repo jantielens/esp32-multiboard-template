@@ -96,10 +96,14 @@ The template uses a **non-standard Arduino pattern** to share code across multip
 
 The build scripts handle compilation automatically:
 
-1. Build script **temporarily copies** all `.cpp`, `.h`, and `.ino.inc` files from `common/src/` to each board's sketch directory
-2. Arduino CLI compiles with custom include paths: `-include board_config.h`
-3. Build script **cleans up** copied files after compilation
-4. **NEVER manually copy/move files** - let the build scripts handle this
+1. Build script reads `package.json` to get project metadata
+2. Build script **temporarily copies** all `.cpp`, `.h`, and `.ino.inc` files from `common/src/` to each board's sketch directory
+3. Build script **injects package.json values** into copied `package_config.h` (name, displayName, displayNameShort)
+4. Arduino CLI compiles with custom include paths: `-include board_config.h`
+5. Build script **cleans up** copied files after compilation
+6. **NEVER manually copy/move files** - let the build scripts handle this
+
+**Note:** The original `common/src/package_config.h` contains default values and is never modified. Only the copied version in the board directory is updated during build.
 
 **Example board sketch** (`boards/esp32_dev/esp32_dev.ino`):
 ```cpp

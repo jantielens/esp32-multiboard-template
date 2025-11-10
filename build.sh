@@ -308,6 +308,29 @@ build_board() {
         echo "Copied $filename"
     done
     
+    # Update the copied package_config.h with values from package.json
+    local copied_package_config="$board_dir/package_config.h"
+    if [ -f "$copied_package_config" ] && [ -f "package.json" ]; then
+        local python_cmd=$(command -v python3 || command -v python)
+        if [ -n "$python_cmd" ]; then
+            local pkg_name=$($python_cmd -c "import json; print(json.load(open('package.json')).get('name', ''))" 2>/dev/null || echo "")
+            local pkg_display_name=$($python_cmd -c "import json; print(json.load(open('package.json')).get('displayName', ''))" 2>/dev/null || echo "")
+            local pkg_display_name_short=$($python_cmd -c "import json; print(json.load(open('package.json')).get('displayNameShort', ''))" 2>/dev/null || echo "")
+            
+            if [ -n "$pkg_name" ]; then
+                sed -i.tmp "s|#define PACKAGE_NAME \".*\"|#define PACKAGE_NAME \"$pkg_name\"|g" "$copied_package_config"
+            fi
+            if [ -n "$pkg_display_name" ]; then
+                sed -i.tmp "s|#define PACKAGE_DISPLAY_NAME \".*\"|#define PACKAGE_DISPLAY_NAME \"$pkg_display_name\"|g" "$copied_package_config"
+            fi
+            if [ -n "$pkg_display_name_short" ]; then
+                sed -i.tmp "s|#define PACKAGE_DISPLAY_NAME_SHORT \".*\"|#define PACKAGE_DISPLAY_NAME_SHORT \"$pkg_display_name_short\"|g" "$copied_package_config"
+            fi
+            rm -f "$copied_package_config.tmp"
+            print_gray "Updated copied package_config.h with values from package.json"
+        fi
+    fi
+    
     # Compile
     print_info "Compiling..."
     $ARDUINO_CLI compile \
@@ -315,6 +338,8 @@ build_board() {
         --output-dir "$build_dir" \
         --build-property "compiler.cpp.extra_flags=-include board_config.h" \
         "$sketch_file"
+    
+    local build_result=$?
     
     # Clean up copied files
     print_info "Cleaning up copied files..."
@@ -324,7 +349,7 @@ build_board() {
     done
     
     # Check if build succeeded
-    if [ -f "$build_dir/$board_name.ino.bin" ]; then
+    if [ $build_result -eq 0 ] && [ -f "$build_dir/$board_name.ino.bin" ]; then
         local size=$(du -h "$build_dir/$board_name.ino.bin" | cut -f1)
         print_success "Build successful"
         print_success "Firmware size: $size"
