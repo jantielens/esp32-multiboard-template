@@ -33,15 +33,6 @@ struct TelemetryData {
     float loopTimeTotal;      // Total loop time in seconds
     float loopTimeWiFi;       // WiFi connection time (0.0 to skip)
     float loopTimeWork;       // Work/processing time (0.0 to skip)
-    float loopTimeOther;      // Other time (0.0 to skip)
-    
-    // Retry counts (255 to skip)
-    uint8_t otherRetryCount1;  // Generic retry counter 1
-    uint8_t otherRetryCount2;  // Generic retry counter 2
-    
-    // Status/log
-    String lastLogMessage;     // Empty to skip
-    String lastLogSeverity;    // "info", "warning", "error"
     
     // Free heap memory in bytes (0 to skip)
     uint32_t freeHeap;
@@ -56,10 +47,6 @@ struct TelemetryData {
         loopTimeTotal(0.0f),
         loopTimeWiFi(0.0f),
         loopTimeWork(0.0f),
-        loopTimeOther(0.0f),
-        otherRetryCount1(255),
-        otherRetryCount2(255),
-        lastLogSeverity("info"),
         freeHeap(0) {}
 };
 
@@ -86,7 +73,6 @@ public:
     bool publishLoopTime(const String& deviceId, float loopTimeSeconds);
     bool publishWiFiSignal(const String& deviceId, int rssi);
     bool publishWiFiBSSID(const String& deviceId, const String& bssid);
-    bool publishLastLog(const String& deviceId, const String& message, const String& severity);
     bool publishFreeHeap(const String& deviceId, uint32_t freeHeap);
     
     // Publish all telemetry in a single MQTT session (optimized for battery-powered devices)

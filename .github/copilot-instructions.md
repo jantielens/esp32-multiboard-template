@@ -235,6 +235,11 @@ All project metadata is defined in **`package.json`** at the project root. This 
 
 **Example customization:**
 ```cpp
+// At top of main_sketch.ino.inc - Configure device behavior:
+#define LOOP_BEHAVIOR RUN_CONTINUOUSLY      // Always-on devices (mains powered)
+// OR
+#define LOOP_BEHAVIOR RUN_ONCE_THEN_SLEEP  // Battery-powered devices
+
 void loop() {
   LogBox::begin("Custom Work");
   LogBox::line("Reading sensor...");
@@ -252,14 +257,15 @@ void loop() {
   LogBox::line("Work completed successfully");
   LogBox::end();
   
-  // For battery mode: uncomment to sleep after work
-  // enterSleepMode(powerManager, configManager, 3600);
+  // Sleep behavior is automatic based on LOOP_BEHAVIOR setting
+  // Add delay() here to control loop frequency (for RUN_CONTINUOUSLY mode)
+  delay(20000);  // Wait 20 seconds before next iteration
 }
 ```
 
-**Operation Modes:**
-- **Battery-powered**: Add work in loop(), uncomment `enterSleepMode()` - runs once per wake
-- **Continuous**: Add work in loop(), keep sleep commented - runs repeatedly
+**Operation Modes (configured via LOOP_BEHAVIOR define):**
+- **RUN_ONCE_THEN_SLEEP**: Work runs once per wake, device sleeps automatically
+- **RUN_CONTINUOUSLY**: Work runs repeatedly, add delay() to control frequency
 
 **What NOT to modify:**
 - `setup()` function (high-level flow is optimized)

@@ -256,32 +256,6 @@ bool MQTTManager::publishDiscovery(const TelemetryData& data) {
         publishCount++;
     }
     
-    if (data.loopTimeOther > 0.0f) {
-        publishSensorDiscovery(getDiscoveryTopic(data.deviceId, "loop_time_other"), data.deviceId, "loop_time_other",
-                              "Loop Time - Other", "duration", "s", data.deviceName, data.modelName, false);
-        publishCount++;
-    }
-    
-    // Retry counts
-    if (data.otherRetryCount1 != 255) {
-        publishSensorDiscovery(getDiscoveryTopic(data.deviceId, "retry_count_1"), data.deviceId, "retry_count_1",
-                              "Retry Count 1", "", "", data.deviceName, data.modelName, false);
-        publishCount++;
-    }
-    
-    if (data.otherRetryCount2 != 255) {
-        publishSensorDiscovery(getDiscoveryTopic(data.deviceId, "retry_count_2"), data.deviceId, "retry_count_2",
-                              "Retry Count 2", "", "", data.deviceName, data.modelName, false);
-        publishCount++;
-    }
-    
-    // Last log sensor
-    if (data.lastLogMessage.length() > 0) {
-        publishSensorDiscovery(getDiscoveryTopic(data.deviceId, "last_log"), data.deviceId, "last_log",
-                              "Last Log", "", "", data.deviceName, data.modelName, false);
-        publishCount++;
-    }
-    
     // Free heap sensor
     if (data.freeHeap > 0) {
         publishSensorDiscovery(getDiscoveryTopic(data.deviceId, "free_heap"), data.deviceId, "free_heap",
@@ -323,13 +297,6 @@ bool MQTTManager::publishWiFiBSSID(const String& deviceId, const String& bssid) 
     return _mqttClient->publish(topic.c_str(), bssid.c_str());
 }
 
-bool MQTTManager::publishLastLog(const String& deviceId, const String& message, const String& severity) {
-    if (!_isConfigured || !_mqttClient->connected()) return false;
-    String topic = getStateTopic(deviceId, "last_log");
-    String payload = "[" + severity + "] " + message;
-    return _mqttClient->publish(topic.c_str(), payload.c_str());
-}
-
 bool MQTTManager::publishFreeHeap(const String& deviceId, uint32_t freeHeap) {
     if (!_isConfigured || !_mqttClient->connected()) return false;
     String topic = getStateTopic(deviceId, "free_heap");
@@ -365,79 +332,97 @@ bool MQTTManager::publishAllTelemetry(const TelemetryData& data) {
     LogBox::line("Publishing state messages...");
     int stateCount = 0;
     
+    // Publish battery voltage state
     if (data.batteryVoltage > 0.0f) {
-        publishBatteryVoltage(data.deviceId, data.batteryVoltage);
+        String topic = getStateTopic(data.deviceId, "battery_voltage");
+        String payload = String(data.batteryVoltage, 2);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Battery: " + payload + " V");
         stateCount++;
     }
     
+    // Publish battery percentage state
     if (data.batteryPercentage >= 0) {
-        publishBatteryPercentage(data.deviceId, data.batteryPercentage);
+        String topic = getStateTopic(data.deviceId, "battery_percentage");
+        String payload = String(data.batteryPercentage);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Battery %: " + payload + " %");
         stateCount++;
     }
     
-    publishLoopTime(data.deviceId, data.loopTimeTotal);
-    stateCount++;
+    // Publish loop time state
+    {
+        String topic = getStateTopic(data.deviceId, "loop_time");
+        String payload = String(data.loopTimeTotal, 2);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Loop Time: " + payload + " s");
+        stateCount++;
+    }
     
-    publishWiFiSignal(data.deviceId, data.wifiRSSI);
-    stateCount++;
+    // Publish WiFi signal state
+    {
+        String topic = getStateTopic(data.deviceId, "wifi_signal");
+        String payload = String(data.wifiRSSI);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("WiFi Signal: " + payload + " dBm");
+        stateCount++;
+    }
     
+    // Publish WiFi BSSID state
     if (data.wifiBSSID.length() > 0) {
-        publishWiFiBSSID(data.deviceId, data.wifiBSSID);
+        String topic = getStateTopic(data.deviceId, "wifi_bssid");
+        _mqttClient->publish(topic.c_str(), data.wifiBSSID.c_str(), true);
+        LogBox::line("WiFi BSSID: " + data.wifiBSSID);
         stateCount++;
     }
     
+    // Publish WiFi retry count
     if (data.wifiRetryCount != 255) {
         String topic = getStateTopic(data.deviceId, "wifi_retries");
-        _mqttClient->publish(topic.c_str(), String(data.wifiRetryCount).c_str());
+        String payload = String(data.wifiRetryCount);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("WiFi Retries: " + payload);
         stateCount++;
     }
     
+    // Publish loop time WiFi
     if (data.loopTimeWiFi > 0.0f) {
         String topic = getStateTopic(data.deviceId, "loop_time_wifi");
-        _mqttClient->publish(topic.c_str(), String(data.loopTimeWiFi, 2).c_str());
+        String payload = String(data.loopTimeWiFi, 2);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Loop Time - WiFi: " + payload + " s");
         stateCount++;
     }
     
+    // Publish loop time work
     if (data.loopTimeWork > 0.0f) {
         String topic = getStateTopic(data.deviceId, "loop_time_work");
-        _mqttClient->publish(topic.c_str(), String(data.loopTimeWork, 2).c_str());
+        String payload = String(data.loopTimeWork, 2);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Loop Time - Work: " + payload + " s");
         stateCount++;
     }
     
-    if (data.loopTimeOther > 0.0f) {
-        String topic = getStateTopic(data.deviceId, "loop_time_other");
-        _mqttClient->publish(topic.c_str(), String(data.loopTimeOther, 2).c_str());
-        stateCount++;
-    }
-    
-    if (data.otherRetryCount1 != 255) {
-        String topic = getStateTopic(data.deviceId, "retry_count_1");
-        _mqttClient->publish(topic.c_str(), String(data.otherRetryCount1).c_str());
-        stateCount++;
-    }
-    
-    if (data.otherRetryCount2 != 255) {
-        String topic = getStateTopic(data.deviceId, "retry_count_2");
-        _mqttClient->publish(topic.c_str(), String(data.otherRetryCount2).c_str());
-        stateCount++;
-    }
-    
-    if (data.lastLogMessage.length() > 0) {
-        publishLastLog(data.deviceId, data.lastLogMessage, data.lastLogSeverity);
-        stateCount++;
-    }
-    
+    // Publish free heap state
     if (data.freeHeap > 0) {
-        publishFreeHeap(data.deviceId, data.freeHeap);
+        String topic = getStateTopic(data.deviceId, "free_heap");
+        String payload = String(data.freeHeap);
+        _mqttClient->publish(topic.c_str(), payload.c_str(), true);
+        LogBox::line("Free Heap: " + payload + " bytes");
         stateCount++;
     }
     
     LogBox::linef("Published %d state messages", stateCount);
     
-    // Give MQTT client time to send messages
-    delay(100);
-    _mqttClient->loop();
+    // Give MQTT client time to transmit all queued messages
+    // PubSubClient needs loop() calls to actually send queued data
+    // 20-30ms is typically sufficient for transmission
+    for (int i = 0; i < 3; i++) {
+        _mqttClient->loop();
+        delay(10);
+    }
     
+    // Disconnect
     disconnect();
     
     LogBox::end("MQTT telemetry published successfully");

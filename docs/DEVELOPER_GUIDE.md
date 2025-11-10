@@ -586,12 +586,13 @@ This is required for OTA updates to work. Firmware size should be < 1.5MB per bo
 Open `common/src/main_sketch.ino.inc` and find the `loop()` function with the "YOUR CUSTOM CODE HERE" comment block:
 
 ```cpp
+// At top of main_sketch.ino.inc - Configure device behavior:
+#define LOOP_BEHAVIOR RUN_CONTINUOUSLY      // Always-on devices (mains powered)
+// OR
+#define LOOP_BEHAVIOR RUN_ONCE_THEN_SLEEP  // Battery-powered devices
+
 void loop() {
   // YOUR CUSTOM CODE HERE - Add your application logic below:
-  //
-  // Choose your device's operation mode:
-  // MODE 1: BATTERY-POWERED - Uncomment enterSleepMode() at end
-  // MODE 2: CONTINUOUS OPERATION - Keep enterSleepMode() commented
   
   LogBox::begin("Custom Work");
   LogBox::line("Performing application logic...");
@@ -611,14 +612,15 @@ void loop() {
   LogBox::line("Work completed successfully");
   LogBox::end();
   
-  // Uncomment for battery-powered mode:
-  // enterSleepMode(powerManager, configManager, 3600);
+  // Sleep behavior is automatic based on LOOP_BEHAVIOR setting
+  // Add delay() here to control loop frequency (for RUN_CONTINUOUSLY mode)
+  delay(20000);  // Wait 20 seconds before next iteration
 }
 ```
 
-**Operation Modes:**
-- **MODE 1 (Battery)**: Work runs once per wake cycle, then device sleeps
-- **MODE 2 (Continuous)**: Work runs repeatedly in loop forever
+**Operation Modes (configured via LOOP_BEHAVIOR):**
+- **RUN_ONCE_THEN_SLEEP (Battery)**: Loop runs once per wake cycle, device enters deep sleep automatically
+- **RUN_CONTINUOUSLY (Always-on)**: Loop runs repeatedly forever, add delay() to control frequency
 
 **What NOT to modify:**
 - `setup()` function (high-level flow is optimized)

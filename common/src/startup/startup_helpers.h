@@ -28,10 +28,25 @@ void enterConfigMode(APModeController& apMode, const char* reason);
  * @param mqttManager Reference to MQTT manager
  * @param configManager Reference to config manager
  * @param powerManager Reference to power manager
+ * @param workTime Optional work time in seconds (0.0 if not available yet)
  * @return true if WiFi connected successfully
  */
 bool connectAndPublish(WiFiManager& wifiManager, MQTTManager& mqttManager, 
-                       ConfigManager& configManager, PowerManager& powerManager);
+                       ConfigManager& configManager, PowerManager& powerManager, 
+                       float workTime = 0.0f);
+
+/**
+ * @brief Publish MQTT telemetry after work is complete (for battery mode)
+ * Call this after your custom work in loop() before entering sleep
+ * @param wifiManager Reference to WiFi manager
+ * @param mqttManager Reference to MQTT manager
+ * @param configManager Reference to config manager
+ * @param powerManager Reference to power manager
+ * @param workTime Work time in seconds
+ */
+void publishTelemetryAfterWork(WiFiManager& wifiManager, MQTTManager& mqttManager,
+                               ConfigManager& configManager, PowerManager& powerManager,
+                               float workTime);
 
 /**
  * @brief Enter deep sleep mode to save power

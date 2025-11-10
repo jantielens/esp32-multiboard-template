@@ -12,6 +12,21 @@
 #include "mqtt_manager.h"
 #include "startup_helpers.h"
 
+#define RUN_ONCE_THEN_SLEEP 1
+#define RUN_CONTINUOUSLY 2
+
+// =============================================================================
+// Device Operation Mode Configuration
+// =============================================================================
+// Select your device's loop behavior:
+// - RUN_ONCE_THEN_SLEEP: Loop runs once per wake cycle, then device enters deep sleep
+//                        (Optimized for battery-powered devices)
+// - RUN_CONTINUOUSLY: Loop runs repeatedly forever, device never sleeps
+//                     (For always-on/mains-powered devices)
+#define LOOP_BEHAVIOR RUN_CONTINUOUSLY
+// OR #define LOOP_BEHAVIOR RUN_ONCE_THEN_SLEEP
+
+
 // =============================================================================
 // Global Component Instances
 // =============================================================================
@@ -58,16 +73,22 @@ void setup() {
     enterConfigMode(apMode, "Reconfiguring device");
 
   } else {
-    // Normal operation - connect and work
+    // Normal operation - connect to WiFi
     LogBox::begin("Configuration");
     LogBox::line("Device is configured");
     LogBox::line("Starting normal operation...");
     LogBox::end();
 
-    if (!connectAndPublish(wifiManager, mqttManager, configManager, powerManager)) {
+    // Connect to WiFi (MQTT publishing will happen in loop after work)
+    uint8_t retryCount = 0;
+    if (!wifiManager.connectToWiFi(&retryCount)) {
       // WiFi failed - enter config mode for reconfiguration
       LogBox::message("WiFi", "Failed to connect to saved network");
       enterConfigMode(apMode, "WiFi connection failed - reconfiguring");
+    } else {
+      LogBox::message("WiFi", "Connected successfully");
+      LogBox::message("WiFi", "IP: " + wifiManager.getLocalIP());
+      LogBox::messagef("WiFi", "RSSI: %d dBm", wifiManager.getRSSI());
     }
   }
 
@@ -82,30 +103,27 @@ void loop() {
   // ===========================================================================
   // YOUR CUSTOM CODE HERE - Add your application logic below:
   //
-  // This loop() function runs continuously after setup() completes.
+  // This loop() function behavior depends on LOOP_BEHAVIOR configuration:
   //
-  // IMPORTANT: Choose your device's operation mode:
+  // RUN_ONCE_THEN_SLEEP (Battery-Powered Mode):
+  //   - Device wakes up from deep sleep
+  //   - setup() runs (connects to WiFi)
+  //   - loop() runs ONCE:
+  //     * Performs your custom work
+  //     * Publishes MQTT telemetry
+  //     * Enters deep sleep for SLEEP_DURATION_SECONDS
+  //   - Device sleeps until next wake cycle
   //
-  // MODE 1: BATTERY-POWERED (Sleep/Wake Cycles)
-  //   - Add your work code here (read sensors, log data, etc.)
-  //   - Uncomment enterSleepMode() at the end of this loop
-  //   - Device will: wake → setup() → loop() once → sleep → repeat
-  //   - Each wake cycle runs loop() exactly once before sleeping
-  //
-  // MODE 2: CONTINUOUS OPERATION (Always-On)
-  //   - Add your work code here (web server, monitoring, etc.)
-  //   - Keep enterSleepMode() commented out
-  //   - Device will: setup() → loop() forever (never sleeps)
-  //   - Loop runs repeatedly - be mindful of delays and blocking code
-  //
-  // Examples of what to add:
-  //   - Read sensors (temperature, humidity, light, GPS, accelerometer)
-  //   - Control actuators (relays, motors, servos, LEDs)
-  //   - Update displays (e-ink, LCD, OLED, LED matrices)
-  //   - Process data or perform calculations
-  //   - Handle web server requests (if running continuous mode)
-  //   - Log custom telemetry or events
+  // RUN_CONTINUOUSLY (Always-On Mode):
+  //   - setup() runs once (connects to WiFi)
+  //   - loop() runs REPEATEDLY forever:
+  //     * Performs your custom work
+  //     * Publishes MQTT telemetry every iteration
+  //     * Recommend adding delay() to avoid flooding MQTT broker
   // ===========================================================================
+
+  // Track work time for telemetry
+  unsigned long workStartTime = millis();
 
   LogBox::begin("Custom Work");
   LogBox::line("Performing application logic...");
@@ -119,8 +137,16 @@ void loop() {
   LogBox::line("Work completed successfully");
   LogBox::end();
 
-  // Uncomment for MODE 1 (battery-powered with sleep/wake cycles):
-  // enterSleepMode(powerManager, configManager, 60);  // Sleep for 1 minute
+  // Calculate work time for telemetry
+  float workTime = (millis() - workStartTime) / 1000.0f;  // Convert to seconds
 
-  // If enterSleepMode() is commented out, this loop repeats forever (MODE 2)
+  // Publish MQTT telemetry
+  publishTelemetryAfterWork(wifiManager, mqttManager, configManager, powerManager, workTime);
+
+#if LOOP_BEHAVIOR == RUN_ONCE_THEN_SLEEP
+  // Battery-powered mode: Enter deep sleep after publishing telemetry
+  enterSleepMode(powerManager, configManager, 60);
+#endif
+
+  delay(20000); // Wait 20 seconds before next loop iteration, only for always-on mode
 }
