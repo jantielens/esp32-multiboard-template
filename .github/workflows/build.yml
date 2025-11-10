@@ -220,18 +220,37 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Discover boards dynamically
+        id: discover-boards
+        uses: ./.github/actions/discover-boards
+      
       - name: Set build matrix
         id: set-matrix
         run: |
+          all_boards='${{ steps.discover-boards.outputs.matrix }}'
+          
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             if [ "${{ github.event.inputs.board }}" = "all" ]; then
-              echo 'matrix=["esp32_dev","esp32s3_dev"]' >> $GITHUB_OUTPUT
+              echo "matrix=$all_boards" >> $GITHUB_OUTPUT
             else
-              echo 'matrix=["${{ github.event.inputs.board }}"]' >> $GITHUB_OUTPUT
+              # Validate that the requested board exists
+              if echo "$all_boards" | jq -e --arg board "${{ github.event.inputs.board }}" 'index($board)' > /dev/null; then
+                echo 'matrix=["${{ github.event.inputs.board }}"]' >> $GITHUB_OUTPUT
+              else
+                echo "ERROR: Board '${{ github.event.inputs.board }}' not found"
+                echo "Available boards: $all_boards"
+                exit 1
+              fi
             fi
           else
-            echo 'matrix=["esp32_dev","esp32s3_dev"]' >> $GITHUB_OUTPUT
+            # For PR/push events, build all boards
+            echo "matrix=$all_boards" >> $GITHUB_OUTPUT
           fi
+          
+          echo "Build matrix: $(cat $GITHUB_OUTPUT | grep matrix | cut -d= -f2-)"
   
   build:
     name: Build ${{ matrix.board }}

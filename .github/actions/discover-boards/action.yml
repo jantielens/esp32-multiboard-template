@@ -1,0 +1,49 @@
+name: 'Discover Boards'
+description: 'Dynamically discover all boards from the boards/ directory'
+outputs:
+  matrix:
+    description: 'JSON array of discovered board names'
+    value: ${{ steps.discover.outputs.matrix }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Discover boards from board.json files
+      id: discover
+      shell: bash
+      run: |
+        echo "Discovering boards from boards/ directory..."
+        
+        boards_json="[]"
+        
+        for board_dir in boards/*; do
+          if [ ! -d "$board_dir" ]; then
+            continue
+          fi
+          
+          board_name=$(basename "$board_dir")
+          board_json="$board_dir/board.json"
+          
+          if [ ! -f "$board_json" ]; then
+            echo "WARNING: Skipping $board_name - no board.json found"
+            continue
+          fi
+          
+          # Verify board.json has required fields
+          if ! jq -e '.name and .fqbn' "$board_json" > /dev/null 2>&1; then
+            echo "WARNING: Skipping $board_name - board.json missing 'name' or 'fqbn'"
+            continue
+          fi
+          
+          echo "Discovered board: $board_name"
+          
+          # Add board to JSON array
+          boards_json=$(echo "$boards_json" | jq --arg board "$board_name" '. + [$board]')
+        done
+        
+        if [ "$(echo "$boards_json" | jq 'length')" -eq 0 ]; then
+          echo "ERROR: No valid boards found"
+          exit 1
+        fi
+        
+        echo "Found $(echo "$boards_json" | jq 'length') board(s)"
+        echo "matrix=$boards_json" >> $GITHUB_OUTPUT

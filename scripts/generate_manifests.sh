@@ -6,6 +6,10 @@ set -euo pipefail
 TAG=${1:-}
 ARTIFACTS_DIR=${2:-artifacts}
 OUTPUT_DIR=${3:-flasher}
+# Note: These defaults are just fallbacks for manual usage.
+# In CI/CD, these are automatically filled with actual values:
+# - ${{ github.repository_owner }} -> your GitHub username
+# - ${{ github.event.repository.name }} -> your repo name
 GITHUB_USER=${4:-YOUR-USERNAME}
 GITHUB_REPO=${5:-esp32-multiboard-template}
 
@@ -24,19 +28,68 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-# Board configuration
+# Dynamically load board configurations from board.json files
 declare -A NAMES
 declare -A CHIP_FAMILIES
-NAMES[esp32_dev]="ESP32 DevKit V1"
-NAMES[esp32s3_dev]="ESP32-S3 DevKit"
-CHIP_FAMILIES[esp32_dev]="ESP32"
-CHIP_FAMILIES[esp32s3_dev]="ESP32-S3"
+
+echo "Loading board configurations..."
+for board_dir in boards/*; do
+  if [ ! -d "$board_dir" ]; then
+    continue
+  fi
+  
+  board_name=$(basename "$board_dir")
+  board_json="$board_dir/board.json"
+  
+  if [ ! -f "$board_json" ]; then
+    continue
+  fi
+  
+  # Parse board.json
+  display_name=$(jq -r '.name // empty' "$board_json")
+  fqbn=$(jq -r '.fqbn // empty' "$board_json")
+  
+  if [ -z "$display_name" ] || [ -z "$fqbn" ]; then
+    continue
+  fi
+  
+  # Extract chip family from FQBN (format: package:arch:board)
+  # e.g., "esp32:esp32:esp32" -> "ESP32", "esp32:esp32:esp32s3" -> "ESP32-S3"
+  if [[ $fqbn == *":esp32s3"* ]] || [[ $fqbn == *"s3"* ]]; then
+    chip_family="ESP32-S3"
+  elif [[ $fqbn == *":esp32s2"* ]] || [[ $fqbn == *"s2"* ]]; then
+    chip_family="ESP32-S2"
+  elif [[ $fqbn == *":esp32c3"* ]] || [[ $fqbn == *"c3"* ]]; then
+    chip_family="ESP32-C3"
+  elif [[ $fqbn == *":esp32c6"* ]] || [[ $fqbn == *"c6"* ]]; then
+    chip_family="ESP32-C6"
+  else
+    chip_family="ESP32"
+  fi
+  
+  NAMES[$board_name]="$display_name"
+  CHIP_FAMILIES[$board_name]="$chip_family"
+  
+  echo "  Loaded: $board_name -> $display_name ($chip_family)"
+done
+
+if [ ${#NAMES[@]} -eq 0 ]; then
+  echo "ERROR: No boards found in boards/ directory"
+  exit 1
+fi
 
 # ESP32 memory offsets (in decimal)
-BOOTLOADER_OFFSET_ESP32=4096      # 0x1000
-BOOTLOADER_OFFSET_ESP32S3=0       # 0x0000
-PARTITIONS_OFFSET=32768           # 0x8000
-FIRMWARE_OFFSET=65536             # 0x10000
+# These are fixed by Espressif's bootloader architecture and are standard across all ESP32 projects.
+# They define where each component is located in flash memory during the flashing process.
+#
+# Note: These offsets are architectural constants, not board-specific settings.
+# They are the same for all boards using the same chip family.
+#
+# If Espressif releases a new chip family with different offsets, update this section:
+BOOTLOADER_OFFSET_ESP32=4096      # 0x1000 - Standard for ESP32/S2/C3/C6
+BOOTLOADER_OFFSET_ESP32S3=0       # 0x0000 - ESP32-S3 uses beginning of flash
+PARTITIONS_OFFSET=32768           # 0x8000 - Universal partition table location
+FIRMWARE_OFFSET=65536             # 0x10000 - Universal application start address
 
 # Create output directory
 mkdir -p "$OUTPUT_DIR"

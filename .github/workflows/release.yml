@@ -10,13 +10,27 @@ env:
   GITHUB_REPO: ${{ github.event.repository.name }}
 
 jobs:
+  discover:
+    name: Discover Boards
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover-boards.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Discover boards dynamically
+        id: discover-boards
+        uses: ./.github/actions/discover-boards
+
   build:
     name: Build Firmware for Release
     runs-on: ubuntu-latest
+    needs: discover
     
     strategy:
       matrix:
-        board: [esp32_dev, esp32s3_dev]
+        board: ${{ fromJSON(needs.discover.outputs.matrix) }}
     
     steps:
       - name: Checkout repository

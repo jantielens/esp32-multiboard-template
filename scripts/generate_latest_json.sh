@@ -6,6 +6,10 @@ set -euo pipefail
 TAG=${1:-}
 ARTIFACTS_DIR=${2:-artifacts}
 OUT_FILE=${3:-latest.json}
+# Note: These defaults are just fallbacks for manual usage.
+# In CI/CD, these are automatically filled with actual values:
+# - ${{ github.repository_owner }} -> your GitHub username
+# - ${{ github.event.repository.name }} -> your repo name
 GITHUB_USER=${4:-YOUR-USERNAME}
 GITHUB_REPO=${5:-esp32-multiboard-template}
 
@@ -22,10 +26,37 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-# Board configuration
+# Dynamically load board configurations from board.json files
 declare -A NAMES
-NAMES[esp32_dev]="ESP32 DevKit V1"
-NAMES[esp32s3_dev]="ESP32-S3 DevKit"
+
+echo "Loading board configurations..."
+for board_dir in boards/*; do
+  if [ ! -d "$board_dir" ]; then
+    continue
+  fi
+  
+  board_name=$(basename "$board_dir")
+  board_json="$board_dir/board.json"
+  
+  if [ ! -f "$board_json" ]; then
+    continue
+  fi
+  
+  # Parse board.json
+  display_name=$(jq -r '.name // empty' "$board_json")
+  
+  if [ -z "$display_name" ]; then
+    continue
+  fi
+  
+  NAMES[$board_name]="$display_name"
+  echo "  Loaded: $board_name -> $display_name"
+done
+
+if [ ${#NAMES[@]} -eq 0 ]; then
+  echo "ERROR: No boards found in boards/ directory"
+  exit 1
+fi
 
 TMP=$(mktemp)
 trap 'rm -f "$TMP"' EXIT
