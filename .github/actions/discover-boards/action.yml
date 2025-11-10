@@ -46,4 +46,7 @@ runs:
         fi
         
         echo "Found $(echo "$boards_json" | jq 'length') board(s)"
+        
+        # Compact JSON output (single line, no whitespace)
+        boards_json=$(echo "$boards_json" | jq -c .)
         echo "matrix=$boards_json" >> $GITHUB_OUTPUT
