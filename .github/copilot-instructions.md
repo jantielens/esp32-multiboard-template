@@ -450,7 +450,7 @@ ls build/esp32_dev/*.bin
 .\upload.ps1 -Board esp32_dev -Port COM7
 
 # Upload (Linux/macOS)
-arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 boards/esp32_dev
+./upload.sh -b esp32_dev -p /dev/ttyUSB0
 
 # Manual library install (if needed)
 # Note: Libraries are managed in libraries.txt and auto-installed by build scripts

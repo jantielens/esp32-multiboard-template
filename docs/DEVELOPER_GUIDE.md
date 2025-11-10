@@ -64,7 +64,7 @@ Complete guide for developers using the ESP32 Multi-Board Template to build firm
 
    **Linux/macOS:**
    ```bash
-   arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 boards/esp32_dev
+   ./upload.sh -b esp32_dev -p /dev/ttyUSB0
    ```
 
 ### Alternative: Web Flasher

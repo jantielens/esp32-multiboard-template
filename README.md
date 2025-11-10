@@ -32,6 +32,9 @@ cd your-new-repo
 
 # Upload (Windows)
 .\upload.ps1 -Board esp32_dev -Port COM7
+
+# Upload (Linux/macOS)
+./upload.sh -b esp32_dev -p /dev/ttyUSB0
 ```
 
 **💡 Pro Tip:** Use GitHub Copilot to explore, customize, and develop your firmware! This repository includes comprehensive instructions in `.github/copilot-instructions.md` that reference all documentation, making it easy to get AI-assisted guidance on components, APIs, and best practices.
