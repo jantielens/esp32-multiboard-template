@@ -169,9 +169,9 @@ if (!(Test-Path $arduinoCliPath)) {
 }
 
 # Discover and configure board manager URLs
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Discovering Board Manager URLs..." -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 
 # Collect unique board manager URLs from boards being built
 $boardManagerUrls = @()
