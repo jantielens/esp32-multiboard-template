@@ -10,10 +10,10 @@
 
 /**
  * @brief Check if user is holding button to force config mode
- * @param powerManager Reference to power manager instance
+ * Must be called very early in setup() before any delays
  * @return true if button is pressed during boot
  */
-bool checkForceConfigMode(PowerManager& powerManager);
+bool checkButtonAtBoot();
 
 /**
  * @brief Enter configuration mode and wait for user input
@@ -55,5 +55,32 @@ void publishTelemetryAfterWork(WiFiManager& wifiManager, MQTTManager& mqttManage
  * @param sleepDuration Sleep duration in seconds
  */
 void enterSleepMode(PowerManager& powerManager, ConfigManager& configManager, float sleepDuration);
+
+/**
+ * @brief Initialize core hardware components
+ * @param powerManager Reference to power manager
+ * @param configManager Reference to config manager
+ */
+void initializeHardware(PowerManager& powerManager, ConfigManager& configManager);
+
+/**
+ * @brief Handle first boot scenario (device not configured)
+ * @param apMode Reference to AP mode controller
+ */
+void handleFirstBoot(APModeController& apMode);
+
+/**
+ * @brief Handle reconfiguration scenario (button held during boot)
+ * @param wifiManager Reference to WiFi manager
+ * @param configPortal Reference to config portal
+ * @param apMode Reference to AP mode controller
+ */
+void handleReconfiguration(WiFiManager& wifiManager, ConfigPortal& configPortal, APModeController& apMode);
+
+/**
+ * @brief Connect to WiFi or restart device after failure
+ * @param wifiManager Reference to WiFi manager
+ */
+void connectToWiFiOrRestart(WiFiManager& wifiManager);
 
 #endif // STARTUP_HELPERS_H

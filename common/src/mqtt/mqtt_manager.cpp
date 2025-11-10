@@ -80,8 +80,15 @@ bool MQTTManager::connect() {
         return false;
     }
     
+    LogBox::line("Broker: " + host + ":" + String(port));
+    
     String clientId = "esp32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
     LogBox::line("Client ID: " + clientId);
+    LogBox::line("Auth: " + String(_username.length() > 0 ? "using credentials" : "anonymous"));
+    if (_username.length() > 0) {
+        LogBox::line("  User: " + _username);
+        LogBox::line("  Pass length: " + String(_password.length()));
+    }
     
     const int maxRetries = 3;
     bool connected = false;
@@ -89,14 +96,37 @@ bool MQTTManager::connect() {
     for (int attempt = 1; attempt <= maxRetries && !connected; attempt++) {
         LogBox::linef("Connection attempt %d/%d...", attempt, maxRetries);
         
+        // Force WiFiClient to stop any previous connection
+        _wifiClient.stop();
+        delay(100);  // Give time for socket to fully close
+        
+        // Reconnect PubSubClient to server (refreshes internal state)
+        _mqttClient->setServer(host.c_str(), port);
+        
         if (_username.length() > 0) {
             connected = _mqttClient->connect(clientId.c_str(), _username.c_str(), _password.c_str());
         } else {
             connected = _mqttClient->connect(clientId.c_str());
         }
         
-        if (!connected && attempt < maxRetries) {
-            delay(500);
+        if (!connected) {
+            int state = _mqttClient->state();
+            LogBox::line("  Failed with state: " + String(state));
+            switch(state) {
+                case -4: LogBox::line("  MQTT_CONNECTION_TIMEOUT"); break;
+                case -3: LogBox::line("  MQTT_CONNECTION_LOST"); break;
+                case -2: LogBox::line("  MQTT_CONNECT_FAILED"); break;
+                case -1: LogBox::line("  MQTT_DISCONNECTED"); break;
+                case 1: LogBox::line("  MQTT_CONNECT_BAD_PROTOCOL"); break;
+                case 2: LogBox::line("  MQTT_CONNECT_BAD_CLIENT_ID"); break;
+                case 3: LogBox::line("  MQTT_CONNECT_UNAVAILABLE"); break;
+                case 4: LogBox::line("  MQTT_CONNECT_BAD_CREDENTIALS"); break;
+                case 5: LogBox::line("  MQTT_CONNECT_UNAUTHORIZED"); break;
+            }
+            
+            if (attempt < maxRetries) {
+                delay(500);
+            }
         }
     }
     
@@ -104,7 +134,8 @@ bool MQTTManager::connect() {
         LogBox::end("Connected to MQTT broker");
         return true;
     } else {
-        _lastError = "Connection failed after " + String(maxRetries) + " attempts";
+        int finalState = _mqttClient->state();
+        _lastError = "Connection failed after " + String(maxRetries) + " attempts (state: " + String(finalState) + ")";
         LogBox::line("ERROR: " + _lastError);
         LogBox::end();
         return false;

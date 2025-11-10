@@ -66,7 +66,9 @@ bool ConfigPortal::begin(int port) {
     
     LogBox::begin("Config Portal");
     LogBox::line("Portal started on port " + String(_port));
-    LogBox::line("Access at: http://" + _wifiManager->getAPIPAddress());
+    // Show appropriate IP based on connection mode
+    String accessIP = WiFi.getMode() == WIFI_AP ? _wifiManager->getAPIPAddress() : WiFi.localIP().toString();
+    LogBox::line("Access at: http://" + accessIP);
     LogBox::end();
     
     return true;

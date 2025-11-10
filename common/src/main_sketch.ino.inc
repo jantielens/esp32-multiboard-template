@@ -43,55 +43,37 @@ APModeController apMode(&wifiManager, &configPortal);
 // =============================================================================
 
 void setup() {
-  // Initialize serial communication
-  Serial.begin(115200);
-  delay(1000);
-
-  // Display startup banner
-  LogBox::begin("ESP32 Multi-Board Template");
-  LogBox::line("Board: " BOARD_NAME);
-  LogBox::end();
-
-  // Initialize core components
-  LogBox::begin("Initialization");
-  LogBox::line("Starting power manager...");
-  powerManager.begin(WAKE_BUTTON_PIN);
-  LogBox::line("Starting config manager...");
-  configManager.begin();
-  LogBox::end();
-
-  // Determine operation mode
-  bool forceConfig = checkForceConfigMode(powerManager);
+  // Check button FIRST before any delays or initialization
+  // This must happen immediately to catch button press during boot
+  bool forceConfig = checkButtonAtBoot();
+  
+  // Initialize hardware and core components
+  initializeHardware(powerManager, configManager);
+  pinMode(LED_PIN, OUTPUT);
+  
+  // Determine configuration state
   bool isConfigured = configManager.isConfigured();
-
+  
+  // Handle first boot scenario - never returns
   if (!isConfigured) {
-    // First boot - need initial configuration
-    enterConfigMode(apMode, "First boot - no configuration found");
-
-  } else if (forceConfig) {
-    // User wants to reconfigure
-    enterConfigMode(apMode, "Reconfiguring device");
-
-  } else {
-    // Normal operation - connect to WiFi
-    LogBox::begin("Configuration");
-    LogBox::line("Device is configured");
-    LogBox::line("Starting normal operation...");
-    LogBox::end();
-
-    // Connect to WiFi (MQTT publishing will happen in loop after work)
-    uint8_t retryCount = 0;
-    if (!wifiManager.connectToWiFi(&retryCount)) {
-      // WiFi failed - enter config mode for reconfiguration
-      LogBox::message("WiFi", "Failed to connect to saved network");
-      enterConfigMode(apMode, "WiFi connection failed - reconfiguring");
-    } else {
-      LogBox::message("WiFi", "Connected successfully");
-      LogBox::message("WiFi", "IP: " + wifiManager.getLocalIP());
-      LogBox::messagef("WiFi", "RSSI: %d dBm", wifiManager.getRSSI());
-    }
+    handleFirstBoot(apMode);
+    return;  // Never reached - config loop runs forever
   }
-
+  
+  // Handle reconfiguration scenario - may return after timeout
+  if (forceConfig) {
+    handleReconfiguration(wifiManager, configPortal, apMode);
+    // Falls through if timeout occurred, otherwise reboots or never returns
+  }
+  
+  // Normal operation - connect to WiFi or restart
+  LogBox::begin("Configuration");
+  LogBox::line("Device is configured");
+  LogBox::line("Starting normal operation...");
+  LogBox::end();
+  
+  connectToWiFiOrRestart(wifiManager);
+  
   LogBox::message("Setup", "Device ready");
 }
 
