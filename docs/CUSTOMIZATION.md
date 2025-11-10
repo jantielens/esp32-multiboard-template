@@ -165,7 +165,7 @@ void loop() {
 
 ### 5. Build and Test
 
-The build scripts automatically discover all boards by scanning the `boards/` directory and reading each `board.json` file. They also automatically discover and configure board manager URLs from the `board_manager_url` field. No manual configuration needed!
+The build scripts automatically discover all boards by scanning the `boards/` directory and reading each `board.json` file. They also automatically discover and configure board manager URLs from the `board_manager_url` field. **No manual configuration needed!**
 
 ```bash
 .\build.ps1 my_new_board
@@ -176,6 +176,13 @@ The build script will:
 2. Extract the `board_manager_url` and add it to Arduino CLI config
 3. Install the required Arduino core (e.g., `Inkplate_Boards:esp32`)
 4. Compile the firmware
+
+**CI/CD and manifest generation are also fully automatic:**
+- CI/CD workflows use the `discover-boards` action (no manual matrix updates)
+- Manifest scripts (`generate_manifests.sh`, `generate_latest_json.sh`) dynamically load from `board.json`
+- Web flasher UI dynamically discovers boards from manifests
+
+**You only need to create the 4 files above - everything else is automatic!**
 
 ## Common ESP32 FQBNs
 

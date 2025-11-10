@@ -377,49 +377,18 @@ User visits flasher site
 
 ### Adding a New Board
 
-**1. Create board files** in `boards/new_board/`:
-- `board.json` - Board metadata with name and FQBN
+**Create board files** in `boards/new_board/`:
+- `board.json` - Board metadata with name, FQBN, and board_manager_url
 - `board_config.h` - Hardware constants
 - `new_board.ino` - Minimal sketch
 
-**2. Update build matrix** in `.github/workflows/build.yml`:
-```yaml
-prepare:
-  steps:
-    - name: Set build matrix
-      run: |
-        echo 'matrix=["esp32_dev","esp32s3_dev","new_board"]' >> $GITHUB_OUTPUT
-```
+**That's it!** Everything else is automatic:
+- ✅ Local build scripts discover from `board.json` files
+- ✅ CI/CD workflows use `discover-boards` action (fully dynamic)
+- ✅ Manifest scripts dynamically load from `board.json` files
+- ✅ Web flasher UI dynamically discovers boards from manifests
 
-**3. Update release workflow** in `.github/workflows/release.yml`:
-```yaml
-build:
-  strategy:
-    matrix:
-      board: [esp32_dev, esp32s3_dev, new_board]
-```
-
-**4. Update manifest script** in `scripts/generate_manifests.sh`:
-```bash
-# Add new board section
-cat > "${FLASHER_DIR}/manifest_new_board.json" << EOF
-{
-  "name": "New Board",
-  "builds": [...]
-}
-EOF
-```
-
-**5. Update flasher UI** in `flasher/app.js`:
-```javascript
-const devices = [
-  { id: 'esp32_dev', name: 'ESP32 DevKit V1', ... },
-  { id: 'esp32s3_dev', name: 'ESP32-S3 DevKit', ... },
-  { id: 'new_board', name: 'New Board Name', ... }
-];
-```
-
-**Note:** Local build scripts (build.ps1/build.sh) automatically discover boards from board.json files - no manual editing needed for local builds!
+**No manual updates to workflows, scripts, or UI needed!**
 ```
 
 ### Changing Build Triggers

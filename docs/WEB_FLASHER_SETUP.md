@@ -113,43 +113,19 @@ flasher/
 
 When you add a new board to the template:
 
-**Local Build Setup (automatic):**
-1. Create `boards/your_new_board/board.json` with name and FQBN
-2. Build scripts automatically discover it - no editing needed!
+**Setup (fully automatic):**
+1. Create `boards/your_new_board/` directory
+2. Add `board.json` with board name, FQBN, and board_manager_url
+3. Add `board_config.h` with hardware constants
+4. Add `your_new_board.ino` minimal sketch
 
-**CI/CD Setup (manual):**
-1. **Update board list** in `scripts/generate_manifests.sh`:
-   ```bash
-   NAMES[your_new_board]="Your New Board Name"
-   CHIP_FAMILIES[your_new_board]="ESP32"  # or "ESP32-S3"
-   ```
+**That's it!** Everything else happens automatically:
+- ✅ Build scripts discover the board from `board.json`
+- ✅ CI/CD workflows discover the board using `discover-boards` action
+- ✅ Manifest generation scripts dynamically load from `board.json`
+- ✅ Web flasher UI dynamically discovers boards from manifests
 
-2. **Update board list** in `scripts/generate_latest_json.sh`:
-   ```bash
-   NAMES[your_new_board]="Your New Board Name"
-   ```
-
-3. **Update workflow** in `.github/workflows/release.yml`:
-   ```yaml
-   strategy:
-     matrix:
-       board: [esp32_dev, esp32s3_dev, your_new_board]
-   ```
-
-4. **Update workflow** in `.github/workflows/build.yml`:
-   ```yaml
-   prepare:
-     steps:
-       - name: Set build matrix
-         run: |
-           echo 'matrix=["esp32_dev","esp32s3_dev","your_new_board"]' >> $GITHUB_OUTPUT
-   ```
-
-5. **Commit and create a new release** - workflow will handle the rest!
-
-**Note:** The flasher UI (`flasher/app.js`) now dynamically discovers boards from manifest files, so no manual editing is needed!
-
-**Note:** The CI/CD workflows still use hardcoded board lists for matrix builds. This is intentional to maintain explicit control over which boards are built in GitHub Actions.
+**No manual editing of workflows or scripts needed!**
 
 ## 🐛 Troubleshooting
 

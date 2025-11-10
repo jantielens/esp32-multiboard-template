@@ -315,15 +315,19 @@ See `docs/CUSTOMIZATION.md` for complete guide. Summary:
 4. Add `board_config.h` with hardware constants
 5. Test build: `.\build.ps1 newboard` (auto-discovered!)
 
-**⚠️ DO NOT manually create manifest files!** They are auto-generated during release workflow.
+**⚠️ CRITICAL: EVERYTHING IS AUTOMATIC!**
+- Build scripts automatically discover boards from `board.json` files
+- CI/CD workflows use `discover-boards` action (fully dynamic discovery)
+- Manifest generation scripts dynamically load from `board.json` files
+- Web flasher UI dynamically discovers boards from manifests
 
-**Note:** Build scripts (build.ps1/build.sh) automatically discover boards by scanning `/boards` folder and reading `board.json` files. The scripts also automatically:
-- Extract `board_manager_url` from each board.json
-- Add unique URLs to arduino-cli config
-- Install required cores based on FQBN package prefix (e.g., esp32:esp32, Inkplate_Boards:esp32)
-- Pin esp32:esp32 to version 3.3.2 for consistency (other cores use latest version)
+**DO NOT manually edit:**
+- ❌ Workflow files (`.github/workflows/*.yml`) - uses dynamic discovery
+- ❌ Manifest scripts (`scripts/generate_*.sh`) - uses dynamic loading
+- ❌ Web flasher (`flasher/app.js`) - uses dynamic discovery
+- ❌ Manifest JSON files (`flasher/manifest_*.json`) - auto-generated on release
 
-No manual script editing required for local builds! CI/CD workflows use the same dynamic discovery approach.
+**Only create the 3 board files (in 1 folder) - everything else happens automatically!**
 
 ### Modifying Components
 
