@@ -2,6 +2,19 @@
 
 Flash ESP32 firmware directly from your browser using [ESP Web Tools](https://esphome.github.io/esp-web-tools/).
 
+## ⚠️ Important: Auto-Generated Files
+
+**DO NOT manually create or edit `manifest_*.json` files in this directory.**
+
+These files are **auto-generated** during the release workflow by `scripts/generate_manifests.sh` and are:
+- Created when you push a git tag (e.g., `v1.0.0`)
+- Generated from board configurations in `boards/*/board.json`
+- Deployed to the `gh-pages` branch (not committed to `main`)
+
+If you need to add a new board, see [CUSTOMIZATION.md](../docs/CUSTOMIZATION.md).
+
+---
+
 ## 🌐 Live Flasher
 
 Visit: **[YOUR-GITHUB-USERNAME.github.io/esp32-multiboard-template/flasher/](https://YOUR-GITHUB-USERNAME.github.io/esp32-multiboard-template/flasher/)**
@@ -17,85 +30,33 @@ The flasher uses the Web Serial API to flash ESP32 devices directly from your br
 
 ## 🔧 For Developers
 
-### Creating a Release with Flasher
+### Manifest Files Are Auto-Generated
 
-When you create a GitHub release, include these binaries for each board:
+**DO NOT manually create manifest files.** They are automatically generated during the release workflow:
 
-```
-{board}-v{version}.bin              # Main firmware
-{board}-v{version}.bootloader.bin   # Bootloader
-{board}-v{version}.partitions.bin   # Partition table
-```
+1. You create a board in `boards/your_board/` with `board.json`
+2. You push a git tag (e.g., `v1.0.0`)
+3. GitHub Actions runs `scripts/generate_manifests.sh`
+4. Manifest files are created and deployed to `gh-pages` branch
 
-Example for v1.0.0:
-```
-esp32_dev-v1.0.0.bin
-esp32_dev-v1.0.0.bootloader.bin
-esp32_dev-v1.0.0.partitions.bin
-esp32s3_dev-v1.0.0.bin
-esp32s3_dev-v1.0.0.bootloader.bin
-esp32s3_dev-v1.0.0.partitions.bin
-```
-
-### Generating Manifests
-
-Create manifest files for ESP Web Tools:
-
-**manifest_esp32_dev.json:**
+**Example auto-generated manifest** (for reference only):
 ```json
 {
   "name": "ESP32 Template for ESP32 DevKit V1",
   "version": "1.0.0",
   "new_install_prompt_erase": true,
-  "builds": [
-    {
-      "chipFamily": "ESP32",
-      "parts": [
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32_dev-v1.0.0.bootloader.bin",
-          "offset": 4096
-        },
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32_dev-v1.0.0.partitions.bin",
-          "offset": 32768
-        },
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32_dev-v1.0.0.bin",
-          "offset": 65536
-        }
-      ]
-    }
-  ]
+  "builds": [{
+    "chipFamily": "ESP32",
+    "parts": [
+      { "path": "https://..../esp32_dev-v1.0.0.bootloader.bin", "offset": 4096 },
+      { "path": "https://..../esp32_dev-v1.0.0.partitions.bin", "offset": 32768 },
+      { "path": "https://..../esp32_dev-v1.0.0.bin", "offset": 65536 }
+    ]
+  }]
 }
 ```
 
-**manifest_esp32s3_dev.json:**
-```json
-{
-  "name": "ESP32 Template for ESP32-S3 DevKit",
-  "version": "1.0.0",
-  "new_install_prompt_erase": true,
-  "builds": [
-    {
-      "chipFamily": "ESP32-S3",
-      "parts": [
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32s3_dev-v1.0.0.bootloader.bin",
-          "offset": 0
-        },
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32s3_dev-v1.0.0.partitions.bin",
-          "offset": 32768
-        },
-        {
-          "path": "https://github.com/YOUR-USERNAME/esp32-multiboard-template/releases/download/v1.0.0/esp32s3_dev-v1.0.0.bin",
-          "offset": 65536
-        }
-      ]
-    }
-  ]
-}
-```
+See [WEB_FLASHER_SETUP.md](../docs/WEB_FLASHER_SETUP.md) for complete setup guide.
 
 ### Testing Locally
 
