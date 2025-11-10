@@ -39,6 +39,8 @@ cd your-new-repo
 
 **💡 Pro Tip:** Use GitHub Copilot to explore, customize, and develop your firmware! This repository includes comprehensive instructions in `.github/copilot-instructions.md` that reference all documentation, making it easy to get AI-assisted guidance on components, APIs, and best practices.
 
+**🤖 Adding Boards with AI:** Use the agent prompt at `.github/prompts/add-board.prompt.md` to automate adding support for new ESP32 board variants.
+
 **See [Developer Guide](docs/DEVELOPER_GUIDE.md) for complete development documentation.**
 
 ### For Users (Flashing Devices)

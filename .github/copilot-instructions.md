@@ -292,6 +292,21 @@ void performCustomWork() {
 
 ### Adding a New Board
 
+**🤖 RECOMMENDED: Use the AI Agent Prompt**
+
+If the user wants to add support for a new ESP32 board, **delegate to the specialized agent prompt** at `.github/prompts/add-board.prompt.md`. This prompt contains comprehensive instructions for:
+- Researching board specifications (FQBN, board manager URL)
+- Creating all required files (board.json, board_config.h, .ino sketch)
+- Validating the build
+- Handling errors and edge cases
+
+**To use the agent prompt:**
+1. Read the prompt file: `.github/prompts/add-board.prompt.md`
+2. Follow its instructions step-by-step
+3. The prompt will guide you on when to ask the user for help if needed
+
+**Manual Summary (if not using agent prompt):**
+
 See `docs/CUSTOMIZATION.md` for complete guide. Summary:
 
 1. Create `boards/newboard/` directory

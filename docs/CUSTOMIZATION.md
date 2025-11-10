@@ -72,7 +72,13 @@ If you want to test the flasher locally before deployment:
 
 ## Adding a New Board
 
-This template makes it easy to add support for new ESP32 variants. Follow these steps:
+This template makes it easy to add support for new ESP32 variants.
+
+**🤖 AI Agent Automation:** For AI-assisted board addition, see the comprehensive agent prompt at `.github/prompts/add-board.prompt.md`. It provides step-by-step instructions for automated board support including research, file creation, and validation.
+
+### Manual Steps
+
+To add a board manually, follow these steps:
 
 ### 1. Create Board Directory
 
