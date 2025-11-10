@@ -292,10 +292,8 @@ String ConfigPortal::generateSuccessPage() {
     html += "<div class='container'>";
     html += "<h1>Configuration Saved</h1>";
     html += "<p>Your configuration has been saved successfully.</p>";
-    html += "<p>The device will now reboot and connect to your WiFi network.</p>";
-    html += "<form method='POST' action='/reboot'>";
-    html += "<button type='submit' class='btn-primary'>Reboot Now</button>";
-    html += "</form>";
+    html += "<p>The device will automatically reboot and connect to your WiFi network.</p>";
+    html += "<p>You can close this page.</p>";
     html += "</div></body></html>";
     return html;
 }
