@@ -226,8 +226,8 @@ All project metadata is defined in **`package.json`** at the project root. This 
 ### Where to Add Your Application Logic
 
 1. **Open `common/src/main_sketch.ino.inc`**
-2. **Find `performCustomWork()` function** (top of file, clearly marked with "START HERE")
-3. **Replace the simulated work** with your actual logic:
+2. **Find the `loop()` function** (clearly marked with "YOUR CUSTOM CODE HERE")
+3. **Replace the example code** with your actual logic:
    - Sensor reading (temperature, humidity, GPS, etc.)
    - Display updates (e-ink, LCD, OLED)
    - Actuator control (relays, motors, servos)
@@ -235,23 +235,34 @@ All project metadata is defined in **`package.json`** at the project root. This 
 
 **Example customization:**
 ```cpp
-void performCustomWork() {
+void loop() {
+  LogBox::begin("Custom Work");
+  LogBox::line("Reading sensor...");
+  
   // Read sensor
   float temperature = readTemperatureSensor();
   
   // Display on screen
   display.clearDisplay();
-  display.println("Temp: " + String(temperature) + "�C");
+  display.println("Temp: " + String(temperature) + "°C");
   display.display();
   
-  // Log to serial
-  LogBox::messagef("Sensor", "Temperature: %.2f�C", temperature);
+  // Log result
+  LogBox::linef("Temperature: %.2f°C", temperature);
+  LogBox::line("Work completed successfully");
+  LogBox::end();
+  
+  // For battery mode: uncomment to sleep after work
+  // enterSleepMode(powerManager, configManager, 3600);
 }
 ```
 
+**Operation Modes:**
+- **Battery-powered**: Add work in loop(), uncomment `enterSleepMode()` - runs once per wake
+- **Continuous**: Add work in loop(), keep sleep commented - runs repeatedly
+
 **What NOT to modify:**
-- Helper functions at the bottom (unless you understand the flow)
-- setup() function (high-level flow is optimized)
+- `setup()` function (high-level flow is optimized)
 - Component initialization order
 
 **Re-entering config mode after deployment:**

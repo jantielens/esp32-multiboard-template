@@ -583,16 +583,20 @@ This is required for OTA updates to work. Firmware size should be < 1.5MB per bo
 
 **Where to add your code:**
 
-Open `common/src/main_sketch.ino.inc` and find the `performCustomWork()` function:
+Open `common/src/main_sketch.ino.inc` and find the `loop()` function with the "YOUR CUSTOM CODE HERE" comment block:
 
 ```cpp
-void performCustomWork() {
-  // START HERE - Replace this simulated work with your actual logic:
-  // - Sensor reading (temperature, humidity, GPS, etc.)
-  // - Display updates (e-ink, LCD, OLED)
-  // - Actuator control (relays, motors, servos)
-  // - Data processing or calculations
+void loop() {
+  // YOUR CUSTOM CODE HERE - Add your application logic below:
+  //
+  // Choose your device's operation mode:
+  // MODE 1: BATTERY-POWERED - Uncomment enterSleepMode() at end
+  // MODE 2: CONTINUOUS OPERATION - Keep enterSleepMode() commented
   
+  LogBox::begin("Custom Work");
+  LogBox::line("Performing application logic...");
+  
+  // TODO: Replace with your actual work
   // Example: Read sensor
   float temperature = readTemperatureSensor();
   
@@ -601,15 +605,25 @@ void performCustomWork() {
   display.println("Temp: " + String(temperature) + "°C");
   display.display();
   
-  // Example: Log to serial
-  LogBox::messagef("Sensor", "Temperature: %.2f°C", temperature);
+  // Example: Log result
+  LogBox::linef("Temperature: %.2f°C", temperature);
+  
+  LogBox::line("Work completed successfully");
+  LogBox::end();
+  
+  // Uncomment for battery-powered mode:
+  // enterSleepMode(powerManager, configManager, 3600);
 }
 ```
 
+**Operation Modes:**
+- **MODE 1 (Battery)**: Work runs once per wake cycle, then device sleeps
+- **MODE 2 (Continuous)**: Work runs repeatedly in loop forever
+
 **What NOT to modify:**
-- Helper functions at the bottom (unless you understand the flow)
 - `setup()` function (high-level flow is optimized)
 - Component initialization order
+- Helper functions (unless you understand the architecture)
 
 ### Adding Custom Components
 
