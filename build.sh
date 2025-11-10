@@ -169,20 +169,27 @@ discover_board_manager_urls() {
     fi
     
     # Add discovered URLs to arduino-cli config
+    local urls_added=false
     if [ ${#unique_urls[@]} -eq 0 ]; then
         print_info "No additional board manager URLs to add"
     else
         print_info "Adding ${#unique_urls[@]} board manager URL(s) to arduino-cli config..."
         for url in "${!unique_urls[@]}"; do
             print_gray "  Adding: $url"
-            $ARDUINO_CLI config add board_manager.additional_urls "$url" 2>/dev/null || true
+            if $ARDUINO_CLI config add board_manager.additional_urls "$url" 2>/dev/null; then
+                urls_added=true
+            fi
         done
     fi
     
-    # Update core index after adding URLs
-    print_info "Updating core index..."
-    $ARDUINO_CLI core update-index
-    print_success "Core index updated successfully"
+    # Update core index only if new URLs were added or index doesn't exist
+    if [ "$urls_added" = true ] || [ ! -f "$HOME/.arduino15/package_"*"_index.json" 2>/dev/null ]; then
+        print_info "Updating core index..."
+        $ARDUINO_CLI core update-index
+        print_success "Core index updated successfully"
+    else
+        print_gray "Core index up to date (skipping update)"
+    fi
 }
 
 # Function to install required cores

@@ -127,6 +127,7 @@ function Build-Board {
     
     $BOARD_CONFIG_PATH = "$WORKSPACE_PATH\$SKETCH_PATH"
     
+    # Arduino CLI now uses build cache automatically with just --build-path
     & $arduinoCliPath compile `
         --fqbn "$BOARD_FQBN" `
         --build-path "$BUILD_DIR" `
@@ -193,17 +194,24 @@ if ($Board -eq "all") {
 }
 
 # Add discovered URLs to arduino-cli config
+$urlsAdded = $false
 foreach ($url in $boardManagerUrls) {
     Write-Host "Adding board manager URL: $url" -ForegroundColor Gray
     & $arduinoCliPath config add board_manager.additional_urls $url 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -eq 0) {
+        $urlsAdded = $true
+    } else {
         Write-Host "  (URL may already exist, continuing...)" -ForegroundColor DarkGray
     }
 }
 
-# Update core index after adding URLs
-Write-Host "Updating core index..." -ForegroundColor Cyan
-& $arduinoCliPath core update-index
+# Update core index only if new URLs were added or index doesn't exist
+if ($urlsAdded -or !(Test-Path "$env:LOCALAPPDATA\Arduino15\package_*_index.json")) {
+    Write-Host "Updating core index..." -ForegroundColor Cyan
+    & $arduinoCliPath core update-index
+} else {
+    Write-Host "Core index up to date (skipping update)" -ForegroundColor Gray
+}
 
 # Install cores based on FQBNs (extract package prefix from fqbn)
 Write-Host "" -ForegroundColor White
