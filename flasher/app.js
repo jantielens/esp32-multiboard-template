@@ -13,6 +13,76 @@
  * - Falls back to common board names if latest.json unavailable
  */
 
+// Project configuration - loaded from config.js (window.PROJECT_CONFIG)
+// Fallback defaults if config.js not loaded
+let PROJECT_CONFIG = {
+  displayName: "ESP32 Multi-Board Template",
+  displayNameShort: "ESP32 Template",
+  description: "A reusable multi-board template for ESP32 projects with WiFi configuration, MQTT telemetry, deep sleep power management, and OTA updates. Perfect for battery-powered IoT projects, Home Assistant integration, and rapid ESP32 prototyping.",
+  repository: "jantielens/esp32-multiboard-template"
+};
+
+// Load project configuration from config.js
+function loadProjectConfig() {
+  if (window.PROJECT_CONFIG) {
+    PROJECT_CONFIG = window.PROJECT_CONFIG;
+    console.log('Loaded project config from config.js');
+  } else {
+    console.warn('config.js not loaded, using defaults');
+  }
+}
+
+// Update page with project configuration
+function updateProjectInfo() {
+  // Update page title
+  document.title = `${PROJECT_CONFIG.displayName} Flasher`;
+
+  // Update meta description
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) {
+    metaDesc.setAttribute('content', `Flash ${PROJECT_CONFIG.displayName} firmware directly from your browser using Web Serial API`);
+  }
+
+  // Update header title
+  const headerTitle = document.querySelector('.header-title');
+  if (headerTitle) {
+    headerTitle.textContent = `⚡ ${PROJECT_CONFIG.displayName}`;
+  }
+
+  // Update GitHub link
+  const githubLink = document.querySelector('.header-link');
+  if (githubLink && PROJECT_CONFIG.repository) {
+    githubLink.href = `https://github.com/${PROJECT_CONFIG.repository}`;
+  }
+
+  // Update hero title
+  const heroTitle = document.querySelector('.hero-title');
+  if (heroTitle) {
+    heroTitle.textContent = `${PROJECT_CONFIG.displayName} Firmware Flasher`;
+  }
+
+  // Update hero description
+  const heroDesc = document.querySelector('.hero-description');
+  if (heroDesc) {
+    heroDesc.textContent = PROJECT_CONFIG.description;
+  }
+
+  // Update install button text
+  const installBtn = document.querySelector('.install-btn');
+  if (installBtn) {
+    installBtn.textContent = `Install ${PROJECT_CONFIG.displayNameShort}`;
+  }
+
+  // Update instructions text that mentions the button
+  const instructions = document.querySelector('.instructions');
+  if (instructions) {
+    const buttonMention = instructions.querySelector('strong');
+    if (buttonMention && buttonMention.textContent.includes('Install')) {
+      buttonMention.textContent = `"Install ${PROJECT_CONFIG.displayNameShort}"`;
+    }
+  }
+}
+
 // Board configuration - dynamically loaded
 let BOARDS = {};
 
@@ -28,6 +98,8 @@ const DEFAULT_ICONS = {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
+  loadProjectConfig();
+  updateProjectInfo();
   checkBrowserSupport();
   await loadBoardConfiguration();
   generateDeviceSelection();

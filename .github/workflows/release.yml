@@ -160,6 +160,7 @@ jobs:
       - name: Commit binaries and manifests to gh-pages branch
         env:
           TAG: ${{ steps.get_version.outputs.tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           
@@ -167,9 +168,25 @@ jobs:
           git config user.email "actions@github.com"
           git config user.name "GitHub Action"
           
+          # Fetch repository description from GitHub API
+          echo "Fetching repository description from GitHub..."
+          REPO_DESCRIPTION=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq -r '.description // ""')
+          echo "Repository description: $REPO_DESCRIPTION"
+          
+          # Generate config.js from package.json + GitHub context
+          echo "Generating config.js..."
+          jq -r --arg repo "$GITHUB_REPOSITORY" --arg desc "$REPO_DESCRIPTION" '
+            "/**\n * Project Configuration\n * \n * Auto-generated from package.json and GitHub repository during deployment.\n * DO NOT EDIT - This file is generated automatically.\n */\nwindow.PROJECT_CONFIG = {\n  displayName: \"\(.displayName // .name)\",\n  displayNameShort: \"\(.displayNameShort // .displayName // .name)\",\n  repository: \"\($repo)\",\n  description: \"\($desc)\"\n};"
+          ' package.json > /tmp/config.js
+          
+          echo ""
+          echo "Generated config.js:"
+          cat /tmp/config.js
+          
           # Save the generated manifests and binaries
           mkdir -p /tmp/flasher-release
           cp manifest_*.json latest.json /tmp/flasher-release/
+          cp /tmp/config.js /tmp/flasher-release/
           
           # Copy all binaries
           echo "Copying binaries from artifacts/:"
@@ -199,6 +216,9 @@ jobs:
           # Copy manifests to root
           cp -v /tmp/flasher-release/manifest_*.json /tmp/flasher-release/latest.json .
 
+          # Copy generated config.js
+          cp -v /tmp/flasher-release/config.js .
+          
           # Copy flasher HTML/CSS/JS from main branch to root
           git show origin/main:flasher/index.html > index.html || true
           git show origin/main:flasher/app.js > app.js || true

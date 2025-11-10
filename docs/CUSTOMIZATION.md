@@ -2,6 +2,71 @@
 
 **Note:** Before customizing, create your own repository using the "Use this template" button on GitHub.
 
+## Customizing Project Name and Branding
+
+All project metadata (name, description, repository) is defined in **`package.json`** at the project root. This is the single source of truth for the web flasher and other components.
+
+### Edit package.json
+
+Edit **`package.json`** in the project root:
+
+```json
+{
+  "name": "esp32-multiboard-template",
+  "displayName": "ESP32 Multi-Board Template",
+  "displayNameShort": "ESP32 Template"
+}
+```
+
+**Key fields:**
+- `displayName` - Full project name (shown in header, page title of web flasher)
+- `displayNameShort` - Short name (used in buttons like "Install ESP32 Template")
+
+**Note:** The `description` and `repository` fields are automatically pulled from your GitHub repository settings during deployment, so you don't need to maintain them in package.json.
+
+### How It Works
+
+During deployment, the CI/CD workflow automatically generates `flasher/config.js`:
+
+1. You edit `package.json` in main branch (for display names)
+2. You edit GitHub repository description (Settings → About section)
+3. On release (git tag), CI/CD workflow:
+   - Reads `package.json` with `jq` for display names
+   - Fetches repository description and URL from GitHub API
+   - Generates `flasher/config.js` with combined metadata
+   - Deploys to gh-pages branch
+4. Web flasher loads `config.js` and updates all page elements dynamically
+
+**Note:** `flasher/config.js` is auto-generated and should NOT be committed (it's in `.gitignore`).
+
+### Local Testing
+
+If you want to test the flasher locally before deployment:
+
+1. Generate `config.js` manually:
+   ```bash
+   # Create flasher/config.js with your values
+   cat > flasher/config.js << 'EOF'
+   window.PROJECT_CONFIG = {
+     displayName: "Your Project Name",
+     displayNameShort: "Your Project",
+     repository: "yourusername/your-repo",
+     description: "Your project description here"
+   };
+   EOF
+   ```
+
+2. Serve the flasher directory:
+   ```bash
+   cd flasher
+   python -m http.server 8000
+   # Visit http://localhost:8000
+   ```
+
+3. **Don't commit** `flasher/config.js` - it's auto-generated during deployment
+
+---
+
 ## Adding a New Board
 
 This template makes it easy to add support for new ESP32 variants. Follow these steps:

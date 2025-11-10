@@ -121,6 +121,7 @@ Binaries are in `build/{board}/`:
 build.ps1               # Windows build script
 build.sh                # Linux/macOS build script (create as needed)
 libraries.txt           # Centralized library management (one per line, supports # comments)
+package.json            # Project metadata (name, description) - used to generate flasher config
 README.md               # User-facing documentation
 ```
 
@@ -162,6 +163,7 @@ flasher/                             # Web flasher (deployed to GitHub Pages)
   index.html                         # ESP Web Tools flasher UI
   app.js                             # Device selection logic
   styles.css                         # Flasher styling
+  config.js                          # Project config (auto-generated from package.json, DO NOT COMMIT)
   manifest_{board}.json              # Flash instructions (per board)
   firmware/                          # Firmware binaries (auto-deployed)
 
@@ -185,7 +187,14 @@ docs/
 
 ### Configuration Files
 
+- **`package.json`** (root): Project metadata for web flasher
+  - `displayName` - Full project name (shown in flasher header, page title)
+  - `displayNameShort` - Short name (used in buttons like "Install ESP32 Template")
+  - **Note:** `description` and `repository` are automatically fetched from GitHub repository during deployment
+  - **Auto-generates `flasher/config.js` during deployment** (DO NOT commit config.js)
+
 - **`common/library.properties`**: Arduino library metadata
+
 - **`boards/{board}/board_config.h`**: Board-specific hardware constants
   - `BOARD_NAME`, `BOARD_MODEL`
   - `HAS_BATTERY`, `BATTERY_ADC_PIN`, voltage divider constants
@@ -194,7 +203,21 @@ docs/
 
 ## Customizing the Template
 
-**Where to add your application logic:**
+### Customizing Project Name and Branding
+
+All project metadata is defined in **`package.json`** at the project root. This is the single source of truth for the web flasher.
+
+**To customize:**
+1. Edit `package.json` fields: `displayName`, `displayNameShort`
+2. Edit GitHub repository description in Settings → About section
+3. During deployment (git tag), CI/CD auto-generates `flasher/config.js` from `package.json` + GitHub API
+4. Web flasher loads `config.js` and updates all page elements dynamically
+
+**Important:** 
+- `flasher/config.js` is in `.gitignore` - DO NOT commit it
+- For local testing, see `docs/CUSTOMIZATION.md` for how to generate config.js manually
+
+### Where to Add Your Application Logic
 
 1. **Open `common/src/main_sketch.ino.inc`**
 2. **Find `performCustomWork()` function** (top of file, clearly marked with "START HERE")
