@@ -3,6 +3,14 @@
 ## Mission
 Add support for a new ESP32 board variant to the esp32-multiboard-template project. This involves researching board specifications, creating configuration files, and validating the build.
 
+## ⚠️ Common Pitfalls to Avoid
+
+1. **❌ DON'T guess the FQBN** - Use `arduino-cli board listall` to get the exact value
+2. **❌ DON'T make 20+ web requests** - If 2-3 documentation searches fail, ask the user
+3. **❌ DON'T spend hours researching pin definitions** - Use safe defaults (GPIO 0 for button, GPIO 2 for LED)
+4. **❌ DON'T manually type FQBNs** - Copy-paste exactly (case-sensitive!)
+5. **✅ DO use Arduino CLI first** - It's the fastest and most reliable method
+
 ## Required Information
 
 You must obtain these three pieces of information:
@@ -17,32 +25,85 @@ You must obtain these three pieces of information:
 
 **Goal:** Find the FQBN and Board Manager URL for the target board.
 
-**Search Strategy:**
+**🎯 PRIMARY METHOD: Use Arduino CLI First**
 
-1. **Check Arduino CLI** (if user has it installed):
-   ```bash
-   arduino-cli board listall <board-name>
+**CRITICAL:** Always try this FIRST before web searching! This is the fastest and most reliable method.
+
+1. **Search for Board Package Online:**
+   - Search: "[board name] arduino board manager url"
+   - Look for the board's official setup guide
+   - Find the "Additional Board Manager URLs" section
+   - Copy the board manager URL (usually a `.json` file)
+
+2. **Install the Board Package:**
+   ```powershell
+   # Add the board manager URL
+   arduino-cli config add board_manager.additional_urls <board_manager_url>
+   
+   # Update the package index
+   arduino-cli core update-index
+   
+   # Install the board package (if you know the package name)
+   arduino-cli core install <package>:<platform>
    ```
 
-2. **Search Official ESP32 Documentation:**
+3. **List Available Boards to Find FQBN:**
+   ```powershell
+   # Search for your board by name (case-insensitive)
+   arduino-cli board listall <board-name-keyword>
+   
+   # Example: arduino-cli board listall inkplate
+   # Example: arduino-cli board listall esp32c6
+   # Example: arduino-cli board listall ttgo
+   ```
+   
+   This command will output the exact FQBN and board name:
+   ```
+   Board Name                    FQBN
+   Soldered Inkplate 5 V2       Inkplate_Boards:esp32:Inkplate5V2
+   ```
+
+**⚠️ Common Pitfall:** Case sensitivity matters! `Inkplate5V2` ≠ `inkplate5v2`
+
+**Alternative Search Methods (if Arduino CLI unavailable):**
+
+4. **Search Official ESP32 Documentation:**
    - https://docs.espressif.com/projects/arduino-esp32/
    - Look for "Board Support" or "Supported Boards" sections
    - Official ESP32 boards use: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
 
-3. **Search Vendor Documentation:**
-   - If it's a third-party board (e.g., Inkplate, TTGO, Heltec), search for the manufacturer's Arduino setup guide
+5. **Search Vendor Documentation:**
+   - Search: "[board name] arduino setup" or "[board name] getting started arduino"
    - Look for phrases like "Board Manager URL" or "Additional Boards Manager URLs"
-   - Common vendors have their own board manager URLs (e.g., Inkplate boards)
+   - Check the vendor's GitHub repository (usually has setup instructions in README)
 
-4. **Search GitHub:**
-   - Look for the board's GitHub repository
-   - Check README.md or docs/ folder for Arduino setup instructions
-   - Search for "boards.txt" file which contains FQBN definitions
+6. **Search GitHub for boards.txt:**
+   - Look for the board's Arduino core repository
+   - Navigate to `boards.txt` file (usually in `boards/` or `variants/` directory)
+   - Search for your board's ID in this file
+   - FQBN format: `<package>:<platform>:<board_id_from_boards.txt>`
 
-5. **Search Arduino Forums/Communities:**
-   - https://forum.arduino.cc/
-   - ESP32.com forums
-   - Reddit r/esp32
+**Example Workflow:**
+
+```powershell
+# User asks to add "inkplate 5 gen 2"
+
+# Step 1: Search for board manager URL
+# Found: https://github.com/SolderedElectronics/Dasduino-Board-Definitions-for-Arduino-IDE/raw/master/package_Dasduino_Boards_index.json
+
+# Step 2: Add to Arduino CLI config
+arduino-cli config add board_manager.additional_urls https://github.com/SolderedElectronics/Dasduino-Board-Definitions-for-Arduino-IDE/raw/master/package_Dasduino_Boards_index.json
+
+# Step 3: Update index
+arduino-cli core update-index
+
+# Step 4: Search for board
+arduino-cli board listall inkplate
+
+# Output shows exact FQBN:
+# Soldered Inkplate 5 V2    Inkplate_Boards:esp32:Inkplate5V2
+#                           ^^^ Use this exact FQBN ^^^
+```
 
 **Common FQBN Patterns:**
 
@@ -57,7 +118,7 @@ You must obtain these three pieces of information:
 
 **When to Ask for Help:**
 
-If after searching the above sources you cannot find EITHER the FQBN OR the Board Manager URL, **STOP** and ask the user:
+If after using Arduino CLI and checking 2-3 vendor documentation sources you cannot find EITHER the FQBN OR the Board Manager URL, **STOP** and ask the user:
 
 ```
 I need help identifying the board specifications for [BOARD_NAME]:
@@ -65,17 +126,22 @@ I need help identifying the board specifications for [BOARD_NAME]:
 ❓ Unable to find: [FQBN / Board Manager URL / Both]
 
 I searched:
-- [List sources you checked]
+- [List sources you checked - max 3-4 sources]
 
 Could you provide:
 1. Link to official Arduino setup documentation
-2. Link to vendor's GitHub repository
-3. Or directly provide the FQBN and Board Manager URL
+2. Or directly provide the FQBN and Board Manager URL
 
 Example format:
 FQBN: esp32:esp32:esp32c6
 Board Manager URL: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
+
+**⚠️ IMPORTANT: Avoid Excessive Web Scraping**
+- Do NOT fetch 20+ web pages trying to find pin definitions
+- Do NOT search through entire GitHub repositories looking for boards.txt
+- If Arduino CLI doesn't work and 2-3 documentation searches fail, ASK THE USER
+- Pin definitions can use safe defaults (see board_config.h section)
 
 ### Phase 2: Create Board Configuration Files
 
@@ -135,25 +201,56 @@ Create `boards/<board_id>/board_config.h`:
 
 **How to determine pin values:**
 
+**⚠️ CRITICAL: Use Safe Defaults, Don't Over-Research**
+
+Most ESP32 boards follow standard conventions. Use these defaults unless you find specific documentation to the contrary:
+
+**Default Configuration (works for 95% of boards):**
+```cpp
+#define HAS_BATTERY false       // Only true if explicitly documented
+#define BATTERY_ADC_PIN 0       // Irrelevant if HAS_BATTERY is false
+#define BATTERY_DIVIDER_R1 100  // Irrelevant if HAS_BATTERY is false
+#define BATTERY_DIVIDER_R2 100  // Irrelevant if HAS_BATTERY is false
+#define HAS_BUTTON true         // Most boards have a BOOT button
+#define WAKE_BUTTON_PIN 0       // GPIO 0 is standard BOOT button
+#define LED_PIN 2               // GPIO 2 is common built-in LED
+```
+
+**Only research pins if:**
+1. Board vendor explicitly documents non-standard pins
+2. Board has unique features (e.g., built-in battery monitoring)
+3. Quick search finds a schematic/pinout diagram
+
+**Where to look (spend MAX 5 minutes):**
+- Board's product page or datasheet
+- Vendor's example code (check `setup()` function for pin definitions)
+- Search: "[board name] pinout" or "[board name] schematic"
+
+**Specific pin guidance:**
+
 1. **LED_PIN:**
-   - Check board schematic or documentation
-   - Common values: GPIO 2 (classic ESP32), GPIO 8 (ESP32-C6)
-   - Try searching: "[board name] led gpio" or "[board name] schematic"
+   - Try: GPIO 2 (classic ESP32), GPIO 8 (ESP32-C6), GPIO 48 (ESP32-S3)
+   - If unsure: use `2` (safe default)
+   - If board has no LED: set to `-1` and `HAS_LED false`
 
 2. **WAKE_BUTTON_PIN:**
-   - Usually GPIO 0 (BOOT button on most ESP32 boards)
-   - Check board documentation for "BOOT button" or "EN button"
+   - Almost always GPIO 0 (BOOT button)
+   - Exception: Some boards use GPIO 9 or custom pins (documented by vendor)
 
 3. **HAS_BATTERY:**
-   - Set to `false` unless the board has built-in battery monitoring
-   - Only set to `true` if board has voltage divider circuit to ADC pin
+   - Set to `false` unless board explicitly has battery monitoring
+   - Examples with battery: Inkplate boards, T-Display boards
+   - Don't guess - battery monitoring requires hardware voltage divider
 
 4. **BOARD_MODEL:**
    - Match the chip variant: "ESP32", "ESP32-S2", "ESP32-S3", "ESP32-C3", "ESP32-C6", etc.
+   - This should match the chipFamily from your FQBN research
 
 **If uncertain about pin values:**
-- Use defaults: `WAKE_BUTTON_PIN 0`, `LED_PIN 2`, `HAS_BATTERY false`
-- These are safe defaults that work for most ESP32 DevKit boards
+- ✅ USE DEFAULTS: `WAKE_BUTTON_PIN 0`, `LED_PIN 2`, `HAS_BATTERY false`
+- ✅ These work for most ESP32 DevKit boards
+- ❌ DON'T spend hours searching for exact pins
+- ❌ DON'T fetch 10+ web pages looking for schematics
 
 #### File 3: Create board sketch (.ino file)
 
@@ -241,8 +338,18 @@ Test-Path "build\<board_id>\<board_id>.ino.bin"
 #### Common Build Issues and Solutions
 
 **Issue: "Board not found" or "Unknown FQBN"**
-- **Cause:** FQBN is incorrect or board package not installed
-- **Solution:** Double-check FQBN format, verify board manager URL is correct
+- **Cause:** FQBN is incorrect (often due to case sensitivity) or board package not installed
+- **Solution:** 
+  1. Re-run `arduino-cli board listall <board-name>` to get EXACT FQBN (case-sensitive!)
+  2. Copy the FQBN character-for-character (don't type it manually)
+  3. Common mistake: `inkplate5v2` vs `Inkplate5V2` - case matters!
+
+**Issue: "Package index download failed"**
+- **Cause:** Board manager URL is incorrect or inaccessible
+- **Solution:** 
+  1. Verify URL is correct (try accessing it in browser - should return JSON)
+  2. Check for typos in `board.json`
+  3. Some URLs need `/raw/` path (GitHub repos)
 
 **Issue: "Include file not found"**
 - **Cause:** Using relative paths or missing board_config.h validation
